@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffb6c1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            color: white;
+            background-color: #ff69b4;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+            background-color: #ff1493;
+        }
+
+        h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #ff69b4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background-color: #ff1493;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">Back to Home</a>
+    <div class="container">
+        <h1>Download Games</h1>
+        <!-- Edit these buttons to change the game name and file path -->
+        <a href="games/game1.zip" download class="button" id="download1">Download Game 1</a>
+        <a href="games/game2.zip" download class="button" id="download2">Download Game 2</a>
+    </div>
+
+    <script>
+        // Easy way to edit button names and file paths
+        const downloadButtons = {
+            download1: {
+                name: "Download Game 1",
+                file: "games/game1.zip"
+            },
+            download2: {
+                name: "Download Game 2",
+                file: "games/game2.zip"
+            }
+        };
+
+        // Function to update button text and file path
+        function updateButton(buttonId, newName, newFile) {
+            const button = document.getElementById(buttonId);
+            button.textContent = newName;
+            button.href = newFile;
+        }
+
+        // Example: updateButton('download1', 'Download My Cool Game', 'games/coolgame.zip');
+    </script>
+</body>
+</html>
