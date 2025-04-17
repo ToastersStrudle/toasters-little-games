@@ -3,57 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toaster's Game Website</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #ffb6c1; /* Light pink background */
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 18px;
-            color: white;
-            background-color: #ff69b4;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-        .button:hover {
-            transform: scale(1.05);
-            background-color: #ff1493;
-        }
-
-        h1 {
-            color: white;
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+    <title>Game Website</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to toasters little games!</h1>
-        <a href="download.html" class="button">Download Games</a>
-        <a href="play.html" class="button">Play Games</a>
-        <a href="credits.html" class="button">Credits</a>
+        <h1 id="page-title">Welcome to Toaster's Little Games!</h1>
+        <div class="button-container">
+            <button onclick="loadPage('download')">Download Games</button>
+            <button onclick="loadPage('play')">Play Games</button>
+            <button onclick="loadPage('credits')">Credits</button>
+        </div>
+        <div id="page-content">
+            <p>Click a button above to load content.</p>
+        </div>
     </div>
+
+    <script>
+        function loadPage(page) {
+            const title = document.getElementById('page-title');
+            const content = document.getElementById('page-content');
+
+            if (page === 'download') {
+                title.innerHTML = 'Download Games';
+                content.innerHTML = `
+                    <p>Click to download your favorite games!</p>
+                    <div class="button-container">
+                        <a class="game-button" href="game1.apk" download>Download Game 1</a>
+                        <a class="game-button" href="game2.apk" download>Download Game 2</a>
+                    </div>
+                    <button onclick="backHome()">Back to Home</button>
+                `;
+            } else if (page === 'play') {
+                title.innerHTML = 'Play Games';
+                content.innerHTML = `
+                    <p>Select a game to play online!</p>
+                    <div class="button-container">
+                        <a class="game-button" href="game1.html" target="_blank">Play Game 1</a>
+                        <a class="game-button" href="game2.html" target="_blank">Play Game 2</a>
+                    </div>
+                    <button onclick="backHome()">Back to Home</button>
+                `;
+            } else if (page === 'credits') {
+                title.innerHTML = 'Credits';
+                content.innerHTML = `
+                    <div class="credits">
+                        <h2>Main Developer</h2>
+                        <p><strong>Toaster</strong> – Lead Website Dev</p>
+                        <p><strong>Cl1pz</strong> – Website Designer</p>
+
+                        <h2>Special Thanks</h2>
+                        <ul>
+                            <li>Community Testers</li>
+                            <li>Friends for Feedback</li>
+                            <li>Open Source Projects for Inspiration</li>
+                        </ul>
+
+                        <h2>Tools Used</h2>
+                        <ul>
+                            <li>GitHub</li>
+                            <li>HTML, CSS </li>
+                        </ul>
+
+                        <h2>Copyright</h2>
+                        <p>&copy; 2025 Toaster Studios. All rights reserved.</p>
+                        <p>© 2025 All Rights Reserved</p>
+
+                        <button onclick="backHome()">Back to Home</button>
+                    </div>
+                `;
+            }
+        }
+
+        function backHome() {
+            document.getElementById('page-title').innerHTML = 'Welcome to Toaster\'s Little Games!';
+            document.getElementById('page-content').innerHTML = '<p>Click a button above to load content.</p>';
+        }
+    </script>
 </body>
 </html>
