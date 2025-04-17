@@ -1,81 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Website</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Website</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1 id="page-title">Welcome to Toaster's Little Games!</h1>
-        <div class="button-container">
-            <button onclick="loadPage('download')">Download Games</button>
-            <button onclick="loadPage('play')">Play Games</button>
-            <button onclick="loadPage('credits')">Credits</button>
-        </div>
-        <div id="page-content">
-            <p>Click a button above to load content.</p>
-        </div>
+  <div class="container">
+    <h1 id="page-title">Welcome to Toaster's Little Games!</h1>
+    <div class="button-container">
+      <button onclick="loadPage('download')">Download Games</button>
+      <button onclick="loadPage('play')">Play Games</button>
+      <button onclick="loadPage('credits')">Credits</button>
     </div>
+    <div id="page-content">
+      <p>Click a button above to load content.</p>
+    </div>
+  </div>
 
-    <script>
-        function loadPage(page) {
-            const title = document.getElementById('page-title');
-            const content = document.getElementById('page-content');
+  <script>
+    function loadPage(page) {
+      const title = document.getElementById("page-title");
+      const content = document.getElementById("page-content");
 
-            if (page === 'download') {
-                title.innerHTML = 'Download Games';
-                content.innerHTML = `
-                    <p>Click below to download game files.</p>
-                    <div class="button-container">
-                        <a class="game-button" href="rage-platformer.zip" download>Download Rage Platformer</a>
-                        <a class="game-button" href="toasters-tank-game.zip" download>Download Toaster's Tank Game</a>
-                    </div>
-                    <button onclick="backHome()">Back to Home</button>
-                `;
-            } else if (page === 'play') {
-                title.innerHTML = 'Play Games';
-                content.innerHTML = `
-                    <p>Select a game to play!</p>
-                    <div class="button-container">
-                        <a class="game-button" href="rage platformer.html" target="_blank">Rage Platformer</a>
-                        <a class="game-button" href="toasters tank game.html" target="_blank">Toaster's Tank Game</a>
-                    </div>
-                    <button onclick="backHome()">Back to Home</button>
-                `;
-            } else if (page === 'credits') {
-                title.innerHTML = 'Credits';
-                content.innerHTML = `
-                    <div class="credits">
-                        <h2>Main Developer</h2>
-                        <p><strong>Toaster</strong> – Lead Programmer & Designer</p>
-                        <h2>Special Thanks</h2>
-                        <ul>
-                            <li>Community Testers</li>
-                            <li>Friends for Feedback</li>
-                            <li>Open Source Projects for Inspiration</li>
-                        </ul>
-                        <h2>Tools Used</h2>
-                        <ul>
-                            <li>Visual Studio Code</li>
-                            <li>Unity & Blender</li>
-                            <li>HTML, CSS & JavaScript</li>
-                        </ul>
-                        <h2>Copyright</h2>
-                        <p>&copy; 2025 Toaster Studios. All rights reserved.</p>
-                        <p>© 2025 All Rights Reserved</p>
-                        <button onclick="backHome()">Back to Home</button>
-                    </div>
-                `;
-            }
-        }
+      if (page === "download") {
+        title.innerHTML = "Download Games";
+        content.innerHTML = `
+          <p>Click below to download the game files.</p>
+          <div class="button-container">
+            <a class="game-button" href="rage platformer.html" download>Download Rage Platformer</a>
+            <a class="game-button" href="toasters tank game.html" download>Download Toaster's Tank Game</a>
+          </div>
+          <button onclick="backHome()">Back to Home</button>
+        `;
+      } else if (page === "play") {
+        title.innerHTML = "Play Games";
+        content.innerHTML = `
+          <p>Select a game to play!</p>
+          <div class="button-container">
+            <a class="game-button" href="rage platformer.html" target="_blank">Rage Platformer</a>
+            <a class="game-button" href="toasters tank game.html" target="_blank">Toaster's Tank Game</a>
+          </div>
+          <button onclick="backHome()">Back to Home</button>
+        `;
+      } else if (page === "credits") {
+        title.innerHTML = "Credits";
+        content.innerHTML = `
+          <div class="credits">
+            <h2>Main Developer</h2>
+            <p><strong>Toaster</strong> – Website Dev</p>
+            <p><strong>Toaster</strong> – Website Designer</p>
 
-        function backHome() {
-            document.getElementById('page-title').innerHTML = 'Welcome to Toaster\'s Little Games!';
-            document.getElementById('page-content').innerHTML = '<p>Click a button above to load content.</p>';
-        }
-    </script>
+            <h2>Special Thanks</h2>
+            <ul>
+              <li>Community Testers</li>
+              <li>Friends for Feedback</li>
+              <li>Open Source Projects for Inspiration</li>
+            </ul>
+
+            <h2>Tools Used</h2>
+            <ul>
+              <li>Visual Studio Code</li>
+              <li>Unity & Blender</li>
+              <li>HTML, CSS & JavaScript</li>
+            </ul>
+
+            <h2>Copyright</h2>
+            <p>© 2025 Toaster Studios. All rights reserved.</p>
+            <p>© 2025 All Rights Reserved</p>
+            <button onclick="backHome()">Back to Home</button>
+          </div>
+        `;
+      }
+    }
+
+    function backHome() {
+      document.getElementById("page-title").innerHTML = "Welcome to Toaster's Little Games!";
+      document.getElementById("page-content").innerHTML = "<p>Click a button above to load content.</p>";
+    }
+  </script>
 </body>
 </html>
