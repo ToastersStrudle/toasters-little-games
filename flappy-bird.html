@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flappy Bird Clone</title>
+  <title>potato bird</title>
   <style>
     * {
       margin: 0;
@@ -24,11 +24,13 @@
     #bird {
       position: absolute;
       width: 40px;
-      height: 40px;
+      height: 30px;
       background: yellow;
-      border-radius: 50%;
+      border-radius: 50% 50% 40% 40%;
       top: 200px;
       left: 100px;
+      border: 2px solid orange;
+      box-shadow: inset -5px -5px 0 0 orange;
     }
     .pipe {
       position: absolute;
@@ -84,7 +86,7 @@
     let score = 0;
     let pipes = [];
     const birdWidth = 40;
-    const birdHeight = 40;
+    const birdHeight = 30;
     let gameRunning = false;
     let pipeInterval;
     let pipeOscillationAngle = 0;
@@ -98,7 +100,7 @@
     });
 
     function createPipe() {
-      const gap = 150;
+      const gap = 180;
       const centerY = window.innerHeight / 2;
 
       const pipeTop = document.createElement('div');
@@ -224,4 +226,3 @@
   </script>
 </body>
 </html>
-
