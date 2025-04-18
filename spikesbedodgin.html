@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spikes Be Dodgin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(#0a0a0a, #000);
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      background: linear-gradient(180deg, #111, #000);
+      border: 2px solid #0ff;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0ff;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #0ff;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    #gameOverScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      display: none;
+    }
+
+    #gameOverScreen h1 {
+      font-size: 48px;
+      color: #f44;
+      text-shadow: 0 0 15px #f44;
+    }
+
+    #gameOverScreen p {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 5px;
+      background: #0ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    #restartBtn:hover {
+      background: #0cc;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      canvas {
+        width: 90vw !important;
+        height: 80vh !important;
+      }
+
+      #overlay {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="overlay">Score: 0</div>
+    <div id="gameOverScreen">
+      <h1>Game Over</h1>
+      <p id="finalScore">Your Score: 0</p>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScoreText = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let score = 0;
+    let gameOver = false;
+
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 50,
+      width: 30,
+      height: 30,
+      speed: 7,
+      color: "#0f0"
+    };
+
+    const keys = {};
+    const spikes = [];
+    let spawnRate = 1000;
+    let lastSpawn = 0;
+
+    window.addEventListener("keydown", e => keys[e.key] = true);
+    window.addEventListener("keyup", e => keys[e.key] = false);
+
+    function spawnSpike() {
+      const size = 20 + Math.random() * 30;
+      const x = Math.random() * (canvas.width - size);
+      spikes.push({
+        x,
+        y: -size,
+        width: size,
+        height: size,
+        speed: 3 + Math.random() * 5,
+        color: "#f44"
+      });
+    }
+
+    function updatePlayer() {
+      if (keys["ArrowLeft"] || keys["a"]) player.x -= player.speed;
+      if (keys["ArrowRight"] || keys["d"]) player.x += player.speed;
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    }
+
+    function updateSpikes() {
+      for (let spike of spikes) spike.y += spike.speed;
+      for (let i = spikes.length - 1; i >= 0; i--) {
+        if (spikes[i].y > canvas.height) {
+          spikes.splice(i, 1);
+          score++;
+          overlay.textContent = "Score: " + score;
+        }
+      }
+      if (score > 0 && score % 10 === 0 && spawnRate > 300) spawnRate -= 10;
+    }
+
+    function checkCollision() {
+      for (let spike of spikes) {
+        if (
+          player.x < spike.x + spike.width &&
+          player.x + player.width > spike.x &&
+          player.y < spike.y + spike.height &&
+          player.y + player.height > spike.y
+        ) gameOver = true;
+      }
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawSpikes() {
+      for (let spike of spikes) {
+        ctx.fillStyle = spike.color;
+        ctx.beginPath();
+        ctx.moveTo(spike.x + spike.width / 2, spike.y);
+        ctx.lineTo(spike.x, spike.y + spike.height);
+        ctx.lineTo(spike.x + spike.width, spike.y + spike.height);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+      if (gameOver) {
+        finalScoreText.textContent = "Your Score: " + score;
+        gameOverScreen.style.display = "flex";
+        return;
+      }
+
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updatePlayer();
+      updateSpikes();
+      checkCollision();
+      drawPlayer();
+      drawSpikes();
+
+      if (timestamp - lastSpawn > spawnRate) {
+        spawnSpike();
+        lastSpawn = timestamp;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    restartBtn.onclick = () => {
+      score = 0;
+      gameOver = false;
+      player.x = canvas.width / 2;
+      spikes.length = 0;
+      spawnRate = 1000;
+      overlay.textContent = "Score: 0";
+      gameOverScreen.style.display = "none";
+      requestAnimationFrame(gameLoop);
+    };
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
