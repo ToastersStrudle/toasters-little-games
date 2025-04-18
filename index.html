@@ -3,121 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Toaster's Little Games</title>
+  <title>Game Website</title>
+  <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
 
   <meta property="og:title" content="Toaster's Little Games" />
   <meta property="og:description" content="Play fun browser games, download browser games, And have fun with unique games created by us!" />
   <meta property="og:url" content="https://your-vercel-site.vercel.app" />
   <meta property="og:type" content="website" />
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      height: 100%;
-      background: linear-gradient(135deg, #222, #111);
-      font-family: 'Rubik', sans-serif;
-      color: #eee;
-    }
-
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      text-align: center;
-    }
-
-    #page-title {
-      font-size: 2.5rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-    }
-
-    .button-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .button-container button,
-    .button-container .game-button {
-      background: #0ff;
-      color: #000;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 600;
-      text-decoration: none;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,255,255,0.3);
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .button-container button:hover,
-    .button-container .game-button:hover {
-      background: #0cc;
-      transform: translateY(-2px);
-    }
-
-    #page-content {
-      background: rgba(0,0,0,0.5);
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.6);
-      text-align: left;
-    }
-
-    #page-content p {
-      margin-bottom: 1rem;
-      line-height: 1.5;
-    }
-
-    .credits h2 {
-      margin-top: 1.5rem;
-      font-size: 1.5rem;
-      color: #0ff;
-      text-shadow: 0 1px 6px rgba(0,255,255,0.5);
-    }
-
-    .credits ul {
-      list-style: disc inside;
-      margin-top: 0.5rem;
-    }
-
-    .credits li {
-      margin-bottom: 0.5rem;
-    }
-
-    a.game-button {
-      display: inline-block;
-    }
-
-    @media (max-width: 600px) {
-      #page-title {
-        font-size: 2rem;
-      }
-      .button-container {
-        gap: 0.5rem;
-      }
-      .button-container button,
-      .button-container .game-button {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-      }
-      #page-content {
-        padding: 1rem;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -166,13 +59,16 @@
       } else if (page === "credits") {
         title.innerHTML = "Credits";
         content.innerHTML = `
-          <div class="credits">
+          <div class="credits" style="overflow-x: auto; max-width: 100%;">
             <h2>Main Developer</h2>
             <p><strong>Toaster</strong> – Website Dev</p>
             <p><strong>Cl1pz</strong> – Website Designer</p>
             <p><strong>Mr. Alien</strong> - Fixing Bugs / Debugging</p>
-            <p><strong>Jett</strong> -Game ideas</p>
-            <p><strong>Nathan</strong> -Game ideas</p>
+
+            <h2>Game Ideas</h2>
+            <p><strong>Nathan</strong></p>
+            <p><strong>Jett</strong></p>
+
             <h2>Special Thanks</h2>
             <ul>
               <li>Community Testers</li>
