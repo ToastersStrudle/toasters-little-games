@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chicken Run Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #87CEEB;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: #87CEEB;
+      margin: 0 auto;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="200"></canvas>
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let chicken = { x: 50, y: 150, width: 40, height: 40, vy: 0, gravity: 1.5, jumping: false };
+  let ground = 180;
+  let cars = [];
+  let gameSpeed = 7;
+  let score = 0;
+  let gameOver = false;
+  let clouds = [{ x: 200, y: 30 }, { x: 500, y: 50 }];
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !chicken.jumping) {
+      chicken.vy = -25;
+      chicken.jumping = true;
+    }
+  });
+
+  function update() {
+    if (gameOver) return;
+
+    chicken.y += chicken.vy;
+    chicken.vy += chicken.gravity;
+    if (chicken.y >= ground - chicken.height) {
+      chicken.y = ground - chicken.height;
+      chicken.jumping = false;
+    }
+
+    // Spawn cars
+    if (Math.random() < 0.015) {
+      cars.push({ x: 800, y: 150, width: 50, height: 30 });
+    }
+
+    // Move and filter cars
+    cars.forEach(car => car.x -= gameSpeed);
+    cars = cars.filter(car => car.x + car.width > 0);
+
+    // Move clouds
+    clouds.forEach(cloud => cloud.x -= 1);
+    clouds.forEach(cloud => {
+      if (cloud.x + 60 < 0) {
+        cloud.x = 800;
+        cloud.y = Math.random() * 50 + 10;
+      }
+    });
+
+    // Collision detection
+    for (let car of cars) {
+      if (chicken.x < car.x + car.width && chicken.x + chicken.width > car.x && chicken.y < car.y + car.height && chicken.y + chicken.height > car.y) {
+        gameOver = true;
+        alert('Game Over! Score: ' + score);
+        location.reload();
+      }
+    }
+
+    score++;
+  }
+
+  function drawChicken(x, y) {
+    ctx.fillStyle = 'yellow';
+    ctx.beginPath();
+    ctx.ellipse(x + 20, y + 20, 20, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'orange';
+    ctx.beginPath();
+    ctx.moveTo(x + 35, y + 20);
+    ctx.lineTo(x + 45, y + 15);
+    ctx.lineTo(x + 45, y + 25);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(x + 28, y + 15, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawCar(x, y) {
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(x, y, 50, 30);
+
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(x + 10, y + 30, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 40, y + 30, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawCloud(x, y) {
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x + 20, y + 10, 20, 0, Math.PI * 2);
+    ctx.arc(x - 20, y + 10, 20, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw clouds
+    clouds.forEach(cloud => drawCloud(cloud.x, cloud.y));
+
+    // Draw road
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, ground, canvas.width, 20);
+
+    // Draw chicken
+    drawChicken(chicken.x, chicken.y);
+
+    // Draw cars
+    cars.forEach(car => drawCar(car.x, car.y));
+
+    // Draw score
+    ctx.fillStyle = 'black';
+    ctx.font = '20px sans-serif';
+    ctx.fillText('Score: ' + score, 650, 30);
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+</script>
+</body>
+</html>
