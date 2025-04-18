@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mining Empire</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+    body, html { margin: 0; padding: 0; height: 100%; font-family: 'Fredoka One', cursive; background: linear-gradient(135deg, #fcb045, #fd1d1d, #833ab4); background-size: 600% 600%; animation: backgroundShift 10s ease infinite; color: white; }
+    @keyframes backgroundShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    #game { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; position: relative; padding: 20px; gap: 50px; }
+    #menuTitle { font-size: 48px; text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7); margin-bottom: 15px; }
+    #stats { background: rgba(0, 0, 0, 0.5); padding: 15px 30px; border-radius: 15px; font-size: 20px; margin-bottom: 25px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.6); }
+    #clickBtn { width: 180px; height: 180px; background-image: url('https://pnghq.com/wp-content/uploads/crystal-pngs-for-free-download-free-png-images-768x994.png'); background-size: contain; background-repeat: no-repeat; background-position: center; border-radius: 50%; border: none; box-shadow: 0 0 20px rgba(255, 255, 255, 0.7); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; margin-bottom: 20px; }
+    #clickBtn:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 255, 255, 0.9); }
+    #rebirthBtn { background: #ffd700; color: #333; font-size: 18px; padding: 15px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); cursor: pointer; transition: background 0.3s ease, transform 0.3s ease; margin-top: 20px; }
+    #rebirthBtn:hover { background: #ffcc00; transform: scale(1.05); }
+    #shop { position: fixed; right: 20px; top: 100px; background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px; width: 250px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); height: 75%; overflow-y: scroll; display: flex; flex-direction: column; align-items: center; }
+    .shop-item { background: #ffb3b3; color: #333; padding: 12px 24px; border-radius: 10px; border: none; font-size: 18px; margin: 10px 0; box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); cursor: pointer; position: relative; transition: background 0.3s ease, transform 0.3s ease; width: 100%; }
+    .shop-item:hover { background: #ff6666; transform: scale(1.05); }
+    .tooltip { visibility: hidden; width: 180px; background-color: rgba(0, 0, 0, 0.7); color: #fff; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 1; bottom: 130%; left: 50%; margin-left: -90px; opacity: 0; transition: opacity 0.3s; }
+    .shop-item:hover .tooltip { visibility: visible; opacity: 1; }
+    .shop-item-price { margin-top: 5px; font-size: 16px; color: #ffd700; }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="menuTitle">Click Empire</div>
+    <div id="stats">
+      <div>Energy: <span id="energy">0</span></div>
+      <div>Rebirths: <span id="rebirths">0</span></div>
+      <div>Energy Per Click: <span id="epc">1</span></div>
+    </div>
+    <button id="clickBtn" onclick="addEnergy()"></button>
+    <div id="rebirthBtnContainer">
+      <button id="rebirthBtn" onclick="rebirth()">Rebirth (<span id="rebirthCost">1000</span>)</button>
+    </div>
+  </div>
+  <div id="shop"></div>
+  <script>
+    let energy = 0;
+    let rebirths = 0;
+    let epc = 1;
+    let autoClickers = 0;
+    let rebirthCost = 1000;
+
+    function addEnergy() {
+      energy += epc;
+      updateUI();
+    }
+
+    function rebirth() {
+      if (energy >= rebirthCost) {
+        rebirths += 1;
+        energy = 0;
+        rebirthCost *= 2;
+        updateUI();
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('energy').textContent = energy;
+      document.getElementById('rebirths').textContent = rebirths;
+      document.getElementById('epc').textContent = epc;
+      document.getElementById('rebirthCost').textContent = rebirthCost;
+    }
+
+    function buyUpgrade(type) {
+      const upg = upgrades.find(u => u.id === type);
+      if (!upg || energy < upg.price) return;
+      energy -= upg.price;
+      if (type === 'cursor') epc += 1;
+      if (type === 'noobClicker') autoClickers += 2;
+      if (type === 'basicClicker') autoClickers += 3;
+      if (type === 'advancedClicker') autoClickers += 5;
+      if (type === 'megaClicker') autoClickers += 10;
+      if (type === 'hyperClicker') autoClickers += 20;
+      if (type === 'ultraClicker') autoClickers += 50;
+      if (type === 'godClicker') autoClickers += 100;
+      if (type === 'superClicker') autoClickers += 200;
+      if (type === 'clickBooster') epc += 5;
+      if (type === 'energyMultiplier') epc *= 2;
+      if (type === 'speedBoost') autoClickers *= 1.5;
+      if (type === 'autoFactory') autoClickers += 500;
+      if (type === 'quantumClicker') autoClickers += 1000;
+      if (type === 'galacticEnergy') epc *= 5;
+      if (type === 'megaRebirth') rebirths += 5;
+      if (type === 'ultraBooster') epc *= 2;
+      if (type === 'timeWarp') energy += 3600 * autoClickers;
+      if (type === 'clickStorm') energy += 10000;
+      if (type === 'blackHole') autoClickers += 5000;
+      if (type === 'coreUpgrade') epc *= 10;
+      if (type === 'multiverseBooster') epc *= 10;
+      if (type === 'infiniteCursor') autoClickers += 1000000;
+      if (type === 'goldenTouch') epc += 1000;
+      if (type === 'rebirthStorm') rebirths += 100;
+      if (type === 'overdrive') autoClickers = 9999999;
+      if (type === 'devMode') epc += 999999;
+      updateUI();
+    }
+
+    const shop = document.getElementById('shop');
+    const upgrades = [
+      { id: 'cursor', name: 'Cursor Upgrade', tooltip: '+1 EPC', price: 10 },
+      { id: 'noobClicker', name: 'Noob Clicker', tooltip: '+2 clicks/sec', price: 50 },
+      { id: 'basicClicker', name: 'Basic Clicker', tooltip: '+3 clicks/sec', price: 100 },
+      { id: 'advancedClicker', name: 'Advanced Clicker', tooltip: '+5 clicks/sec', price: 250 },
+      { id: 'megaClicker', name: 'Mega Clicker', tooltip: '+10 clicks/sec', price: 500 },
+      { id: 'hyperClicker', name: 'Hyper Clicker', tooltip: '+20 clicks/sec', price: 1000 },
+      { id: 'ultraClicker', name: 'Ultra Clicker', tooltip: '+50 clicks/sec', price: 2000 },
+      { id: 'godClicker', name: 'God Clicker', tooltip: '+100 clicks/sec', price: 4000 },
+      { id: 'superClicker', name: 'Super Clicker', tooltip: '+200 clicks/sec', price: 8000 },
+      { id: 'clickBooster', name: 'Click Booster', tooltip: '+5 EPC', price: 500 },
+      { id: 'energyMultiplier', name: 'Energy Multiplier', tooltip: 'Doubles EPC', price: 1000 },
+      { id: 'speedBoost', name: 'Speed Boost', tooltip: 'Increases auto-clicker speed', price: 1500 },
+      { id: 'autoFactory', name: 'Auto Factory', tooltip: '+500 clicks/sec', price: 16000 },
+      { id: 'quantumClicker', name: 'Quantum Clicker', tooltip: '+1000 clicks/sec', price: 32000 },
+      { id: 'galacticEnergy', name: 'Galactic Energy', tooltip: 'x5 EPC', price: 50000 },
+      { id: 'megaRebirth', name: 'Mega Rebirth', tooltip: '+5 Rebirths', price: 100000 },
+      { id: 'ultraBooster', name: 'Ultra Booster', tooltip: 'x2 EPC', price: 75000 },
+      { id: 'timeWarp', name: 'Time Warp', tooltip: 'Skip 1 hour of idle progress', price: 150000 },
+      { id: 'clickStorm', name: 'Click Storm', tooltip: 'Instant +10k energy', price: 200000 },
+      { id: 'blackHole', name: 'Black Hole Generator', tooltip: '+5000 clicks/sec', price: 500000 },
+      { id: 'coreUpgrade', name: 'Core Upgrade', tooltip: 'x10 EPC', price: 1000000 },
+      { id: 'multiverseBooster', name: 'Multiverse Booster', tooltip: 'x10 EPC', price: 2000000 },
+      { id: 'infiniteCursor', name: 'Infinite Cursor', tooltip: '+1M clicks/sec', price: 10000000 },
+      { id: 'goldenTouch', name: 'Golden Touch', tooltip: '+1k EPC', price: 15000000 },
+      { id: 'rebirthStorm', name: 'Rebirth Storm', tooltip: '+100 rebirths', price: 20000000 },
+      { id: 'overdrive', name: 'Click Overdrive', tooltip: 'Max auto clickers', price: 50000000 },
+      { id: 'devMode', name: '???', tooltip: '???', price: 99999999 }
+    ];
+
+    upgrades.forEach(upgrade => {
+      const button = document.createElement('button');
+      button.classList.add('shop-item');
+      button.innerHTML = `${upgrade.name} <span class="shop-item-price">${upgrade.price} Energy</span>`;
+      button.onclick = () => buyUpgrade(upgrade.id);
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('tooltip');
+      tooltip.innerText = upgrade.tooltip;
+      button.appendChild(tooltip);
+      shop.appendChild(button);
+    });
+  </script>
+</body>
+</html>
