@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shoot Mgk</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #87CEEB;
+      font-family: Arial, sans-serif;
+    }
+
+    .game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .player {
+      position: absolute;
+      width: 80px;
+      height: 120px;
+      background-image: url('https://p7.hiclipart.com/preview/539/658/349/eminem-rapper-singer-hip-hop-music-song-eminem.jpg');
+      background-size: cover;
+      left: 50%;
+      bottom: 50px;
+      transform: translateX(-50%);
+    }
+
+    .target {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background-color: #FFD700;
+      border-radius: 50%;
+      background-image: url('https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/5772b0f1-aafe-4e57-95a7-e8ceeabb2e92/degdow4-65293a03-5d82-4575-bc8b-bf5b0c5ec656.png/v1/fill/w_953,h_838,strp/mgk_cartoon_transparent_png_by_dopaminehobbyco_degdow4-pre.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9ODQ5IiwicGF0aCI6IlwvZlwvNTc3MmIwZjEtYWFmZS00ZTU3LTk1YTctZThjZWVhYmIyZTkyXC9kZWdkb3c0LTY1MjkzYTAzLTVkODItNDU3NS1iYzhiLWJmNWIwYzVlYzY1Ni5wbmciLCJ3aWR0aCI6Ijw9OTY1In1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.qFIhqq9r_rdCNQHAJ82oO4RqMIGej8vii5pikSo0C6Q');
+      background-size: cover;
+    }
+
+    .score, .game-over {
+      position: absolute;
+      top: 10px;
+      color: white;
+      font-size: 20px;
+    }
+
+    .timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: white;
+      font-size: 20px;
+    }
+
+    .game-over {
+      display: none;
+      font-size: 40px;
+      color: red;
+      text-align: center;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #replay-button {
+      display: none;
+      position: absolute;
+      font-size: 30px;
+      background-color: #FFD700;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <div class="player" id="player"></div>
+    <div class="score" id="score">Score: 0</div>
+    <div class="timer" id="timer">Time: 0</div>
+    <div class="game-over" id="game-over">Game Over!</div>
+    <button id="replay-button" onclick="replayGame()">Replay</button>
+  </div>
+
+  <script>
+    const player = document.getElementById("player");
+    const scoreText = document.getElementById("score");
+    const timerText = document.getElementById("timer");
+    const gameOverText = document.getElementById("game-over");
+    const replayButton = document.getElementById("replay-button");
+
+    let score = 0;
+    let timeElapsed = 0;
+    let targets = [];
+    let mouseX = 0, mouseY = 0;
+    let playerSpeed = 5;
+    let targetSpeed = 1;
+    let gameInterval;
+    let targetInterval;
+    let playerHits = 0;
+
+    function setPlayerImage(imageUrl) {
+      player.style.backgroundImage = `url(${imageUrl})`;
+    }
+
+    let keys = { up: false, down: false, left: false, right: false };
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "w") keys.up = true;
+      if (e.key === "s") keys.down = true;
+      if (e.key === "a") keys.left = true;
+      if (e.key === "d") keys.right = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "w") keys.up = false;
+      if (e.key === "s") keys.down = false;
+      if (e.key === "a") keys.left = false;
+      if (e.key === "d") keys.right = false;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    document.addEventListener("click", killTarget);
+
+    function killTarget(e) {
+      for (let i = 0; i < targets.length; i++) {
+        let target = targets[i];
+        if (
+          e.clientX >= target.offsetLeft &&
+          e.clientX <= target.offsetLeft + target.offsetWidth &&
+          e.clientY >= target.offsetTop &&
+          e.clientY <= target.offsetTop + target.offsetHeight
+        ) {
+          score++;
+          scoreText.textContent = `Score: ${score}`;
+          target.remove();
+          targets.splice(i, 1);
+          i--;
+        }
+      }
+    }
+
+    function updatePlayer() {
+      if (keys.left && player.offsetLeft > 0) {
+        player.style.left = player.offsetLeft - playerSpeed + "px";
+      }
+      if (keys.right && player.offsetLeft < window.innerWidth - player.offsetWidth) {
+        player.style.left = player.offsetLeft + playerSpeed + "px";
+      }
+      if (keys.up && player.offsetTop > 0) {
+        player.style.top = player.offsetTop - playerSpeed + "px";
+      }
+      if (keys.down && player.offsetTop < window.innerHeight - player.offsetHeight) {
+        player.style.top = player.offsetTop + playerSpeed + "px";
+      }
+    }
+
+    function generateTarget() {
+      let target = document.createElement("div");
+      target.classList.add("target");
+      target.style.left = Math.random() * (window.innerWidth - 80) + "px";
+      target.style.top = Math.random() * (window.innerHeight - 100) + "px";
+      document.body.appendChild(target);
+      targets.push(target);
+    }
+
+    function moveTargets() {
+      for (let target of targets) {
+        let dx = player.offsetLeft + player.offsetWidth / 2 - (target.offsetLeft + target.offsetWidth / 2);
+        let dy = player.offsetTop + player.offsetHeight / 2 - (target.offsetTop + target.offsetHeight / 2);
+        let angle = Math.atan2(dy, dx);
+        target.style.left = target.offsetLeft + Math.cos(angle) * targetSpeed + "px";
+        target.style.top = target.offsetTop + Math.sin(angle) * targetSpeed + "px";
+      }
+    }
+
+    function checkCollision() {
+      for (let target of targets) {
+        if (
+          target.offsetLeft < player.offsetLeft + player.offsetWidth &&
+          target.offsetLeft + target.offsetWidth > player.offsetLeft &&
+          target.offsetTop < player.offsetTop + player.offsetHeight &&
+          target.offsetTop + target.offsetHeight > player.offsetTop
+        ) {
+          playerHits++;
+          if (playerHits >= 5) {
+            gameOver();
+          }
+        }
+      }
+    }
+
+    function increaseDifficulty() {
+      targetSpeed += 0.01;
+      if (targetSpeed > 2) targetSpeed = 2;
+    }
+
+    function updateTimer() {
+      timeElapsed += 0.5;
+      timerText.textContent = `Time: ${Math.floor(timeElapsed)}`;
+    }
+
+    function gameOver() {
+      clearInterval(gameInterval);
+      clearInterval(targetInterval);
+      gameOverText.style.display = 'block';
+      replayButton.style.display = 'block';
+    }
+
+    function replayGame() {
+      gameOverText.style.display = 'none';
+      replayButton.style.display = 'none';
+      score = 0;
+      timeElapsed = 0;
+      playerHits = 0;
+      scoreText.textContent = `Score: ${score}`;
+      timerText.textContent = `Time: 0`;
+      targets.forEach(target => target.remove());
+      targets = [];
+      gameInterval = setInterval(gameLoop, 1000 / 60);
+      targetInterval = setInterval(generateTarget, 1000);
+    }
+
+    function gameLoop() {
+      if (gameOverText.style.display === 'block') return;
+      updatePlayer();
+      moveTargets();
+      checkCollision();
+      increaseDifficulty();
+      updateTimer();
+    }
+
+    gameInterval = setInterval(gameLoop, 1000 / 60);
+    targetInterval = setInterval(generateTarget, 1000);
+    setPlayerImage('https://p7.hiclipart.com/preview/539/658/349/eminem-rapper-singer-hip-hop-music-song-eminem.jpg');
+  </script>
+
+</body>
+</html>
