@@ -100,3 +100,22 @@ a.game-button:hover {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.credits-scrollable {
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+    padding-bottom: 1rem;
+}
+
+.credits-scrollable > * {
+    display: inline-block;
+    vertical-align: top;
+    white-space: normal;
+    margin-right: 3rem;
+}
+
+.credits-scrollable h2 {
+    display: block;
+    width: 100%;
+}
