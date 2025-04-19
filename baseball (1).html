@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Toaster Sluggers</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle, #004, #000);
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: linear-gradient(to bottom, #7ec0ee, #fff);
+      border: 4px solid #444;
+      border-radius: 12px;
+      box-shadow: 0 0 24px rgba(0,0,0,0.8);
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      text-align: center;
+    }
+    #ui div {
+      margin-bottom: 6px;
+      font-size: 1.1em;
+    }
+    .cheer {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2em;
+      color: #ff0;
+      font-family: 'Comic Sans MS', cursive;
+      text-shadow: 2px 2px 4px #000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="400"></canvas>
+  <div id="ui">
+    <div id="distance">Distance: 0 ft</div>
+    <div id="strikeCount">Strikes: 0</div>
+    <div id="pitchType">Pitch: </div>
+    <div id="result"></div>
+  </div>
+  <div id="cheer" class="cheer">HOMERUN!</div>
+  <audio id="homeRunSound" src="home_run.mp3"></audio>
+  <audio id="grandSlamSound" src="grand_slam.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+    const distanceEl = document.getElementById("distance")
+    const pitchTypeEl = document.getElementById("pitchType")
+    const resultEl = document.getElementById("result")
+    const strikeCountEl = document.getElementById("strikeCount")
+    const cheerEl = document.getElementById("cheer")
+
+    let batY = canvas.height - 20; // Lower batter by changing this value
+    let swinging = false
+    let ball = null
+    let strikes = 0
+    let score = 0
+    let totalDistance = 0
+
+    const zone = { x: 180, y: 130, width: 80, height: 120 }
+
+    const pitches = [
+      { name: "2-Seam Fastball", color: "#f55", speed: 7, logic: (b, f) => {} },
+      { name: "4-Seam Fastball", color: "#5f5", speed: 15, logic: (b, f) => {} },
+      { name: "Curveball", color: "#ff5", speed: 5, logic: (b, f) => { b.y += 0.5; b.x -= 0.3 } },
+      { name: "Changeup", color: "#5ff", speed: 4.5, logic: (b, f) => { if (f>10) b.y += 0.4 } },
+      { name: "Slider", color: "#a5f", speed: 6, logic: (b, f) => { if (f>10) b.x -= 0.6 } },
+    ]
+
+    function resetGame() {
+      strikes = 0
+      score = 0
+      totalDistance = 0
+      distanceEl.textContent = `Distance: 0 ft`
+      strikeCountEl.textContent = `Strikes: ${strikes}`
+      cheerEl.style.display = 'none'
+      spawnBall()
+    }
+
+    function spawnBall() {
+      const pitch = pitches[Math.floor(Math.random()*pitches.length)]
+      pitchTypeEl.textContent = `Pitch: ${pitch.name}`
+      ball = {
+        x: canvas.width - 60,
+        y: 130 + Math.random()*120,
+        vx: -pitch.speed,
+        vy: 0,
+        radius: 9,
+        color: pitch.color,
+        logic: pitch.logic,
+        frame: 0,
+        name: pitch.name,
+        trail: []
+      }
+    }
+
+    function drawStrikeZone() {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)'
+      ctx.fillRect(zone.x, zone.y, zone.width, zone.height)
+      ctx.strokeStyle = '#fff'
+      ctx.strokeRect(zone.x, zone.y, zone.width, zone.height)
+    }
+
+    function drawBat() {
+      ctx.save()
+      ctx.translate(100, batY)
+      if (swinging) ctx.rotate(-Math.PI / 4)
+      ctx.fillStyle = "#864"
+      ctx.fillRect(0, -40, 70, 12)
+      ctx.restore()
+    }
+
+    function drawPitcher() {
+      ctx.fillStyle = "#000"
+      ctx.beginPath()
+      ctx.arc(canvas.width - 40, 200, 30, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = "#fff"
+      ctx.beginPath()
+      ctx.arc(canvas.width - 40, 200, 20, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    function drawBatter() {
+  // Head
+  ctx.fillStyle = "#fcd5b5"; // skin tone
+  ctx.beginPath();
+  ctx.arc(90, batY - 45, 7, 0, Math.PI * 2); // head circle
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = "#fa3"; // jersey
+  ctx.fillRect(83, batY - 38, 14, 20); // torso
+
+  // Arms
+  ctx.fillStyle = "#fa3";
+  ctx.fillRect(75, batY - 35, 8, 6); // left arm
+  ctx.fillRect(97, batY - 35, 8, 6); // right arm
+
+  // Legs
+  ctx.fillStyle = "#333"; // pants
+  ctx.fillRect(83, batY - 18, 6, 12); // left leg
+  ctx.fillRect(91, batY - 18, 6, 12); // right leg
+
+  // Bat
+  ctx.fillStyle = "#964B00"; // brown bat
+  ctx.fillRect(70, batY - 50, 4, 30); // vertical bat
+
+  // Eyes
+  ctx.fillStyle = "#000";
+  ctx.fillRect(87, batY - 47, 2, 2); // left eye
+  ctx.fillRect(91, batY - 47, 2, 2); // right eye
+}
+
+    function drawBall() {
+      if (!ball) return
+
+      ball.trail.push({ x: ball.x, y: ball.y, alpha: 1 })
+      if (ball.trail.length > 15) ball.trail.shift()
+      for (let t of ball.trail) {
+        ctx.beginPath()
+        ctx.arc(t.x, t.y, ball.radius, 0, Math.PI*2)
+        ctx.fillStyle = `rgba(255,255,255,${t.alpha})`
+        ctx.fill()
+        t.alpha -= 0.05
+      }
+
+      ctx.beginPath()
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2)
+      ctx.fillStyle = ball.color
+      ctx.fill()
+    }
+
+    function updateBall() {
+      if (!ball) return
+      ball.logic(ball, ball.frame)
+      ball.x += ball.vx
+      ball.y += ball.vy
+      ball.frame++
+
+      if (ball.x < 130 && !swinging) {
+        const strike = ball.y >= zone.y && ball.y <= zone.y + zone.height
+        resultEl.textContent = strike ? "Strike!" : "Ball!"
+        if (strike) {
+          strikes++
+          strikeCountEl.textContent = `Strikes: ${strikes}`
+          if (strikes >= 3) {
+            resultEl.textContent = "STRIKE OUT!"
+            strikes = 0
+          }
+        }
+        setTimeout(() => { resultEl.textContent = "" }, 1000)
+        spawnBall()
+        return
+      }
+
+      if (ball.x < 160 && swinging && ball.y > batY - 40 && ball.y < batY + 40) {
+        const inZone = ball.x >= zone.x && ball.x <= zone.x + zone.width &&
+                       ball.y >= zone.y && ball.y <= zone.y + zone.height
+        let distance = Math.floor(Math.random() * 400 + 100)
+        totalDistance += distance
+        resultEl.textContent = inZone ? `HOMERUN!! ${distance} ft!` : `HIT! ${distance} ft`
+        distanceEl.textContent = `Distance: ${totalDistance} ft`
+        if (inZone) {
+          cheerEl.textContent = "HOMERUN!"
+          cheerEl.style.display = 'block'
+          if (totalDistance > 1200) {
+            document.getElementById('grandSlamSound').play()
+          } else {
+            document.getElementById('homeRunSound').play()
+          }
+        }
+        ball = null
+        strikes = 0
+        strikeCountEl.textContent = `Strikes: ${strikes}`
+        setTimeout(() => { resultEl.textContent = "" }, 1200)
+        spawnBall()
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      drawStrikeZone()
+      drawBat()
+      drawPitcher()
+      drawBatter()
+      drawBall()
+    }
+
+    function gameLoop() {
+      updateBall()
+      draw()
+      requestAnimationFrame(gameLoop)
+    }
+
+    document.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect()
+      batY = e.clientY - rect.top
+    })
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") swing()
+    })
+    document.addEventListener("mousedown", swing)
+
+    function swing() {
+      if (swinging) return
+      swinging = true
+      setTimeout(() => swinging = false, 250)
+    }
+
+    resetGame()
+    gameLoop()
+  </script>
+</body>
+</html>
