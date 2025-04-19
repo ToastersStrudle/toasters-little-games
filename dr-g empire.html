@@ -1,175 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dr*g Empire</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dr*g Empire Clicker</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       background-color: #111;
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background-image: url('https://e0.pxfuel.com/wallpapers/158/769/desktop-wallpaper-alleyway-background-alleyway-alleyway-background-and-the-tramp-lady-and-thrasher-alleyway-alley-anime.jpg'); 
+      background-image: url('data:image/jpeg;base64,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'); /* Placeholder URL for an industrial-style background */
       background-size: cover;
-    }
-
-    .game-container {
+      background-position: center;
+      background-attachment: fixed;
+      color: #eee;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
       padding: 20px;
+      margin: 0;
     }
 
-    button {
-      background-color: #444;
-      color: white;
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      background-color: #4caf50;
       border: none;
-      padding: 15px 25px;
-      margin: 10px;
+      color: white;
+      padding: 12px 20px;
+      margin: 10px 0;
+      font-size: 1em;
       cursor: pointer;
-      font-size: 16px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 300px;
     }
 
-    button:disabled {
-      background-color: #888;
+    .button:disabled {
+      background-color: #777;
+      cursor: not-allowed;
     }
 
-    button:hover {
-      background-color: #666;
+    .panel, .upgrade-section {
+      background-color: rgba(34, 34, 34, 0.7); /* Semi-transparent background for the panels */
+      border: 2px solid #444;
+      border-radius: 15px;
+      padding: 15px;
+      margin: 15px auto;
+      width: 90%;
+      max-width: 400px;
     }
 
-    .upgrades button {
-      width: 200px;
+    .stats {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+
+    .upgrade-section button {
+      font-size: 0.9em;
+      margin-top: 5px;
+      width: 100%;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 600px) {
+      h1 {
+        font-size: 3em;
+      }
+
+      .button {
+        font-size: 1.1em;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="game-container">
-    <h1>Dr*g Empire</h1>
-    <div id="grams">Grahms: 0</div>
-    <div id="gpc">Grams Per Click: 1</div>
-    <div id="pp">Prestige Points: 0</div>
-    
-    <button class="button" onclick="cook()">Click</button>
-    
-    <details class="panel">
-      <summary>🔧 Upgrades Menu</summary>
+  <h1>💊 Dr*g Empire 💊</h1>
 
-      <div class="upgrade-section">
-        <h3>🔬 Lab</h3>
-        <p>Produces 1 gram/sec each</p>
-        <p>Owned: <span id="labCount">0</span></p>
-        <p>Cost: <span id="labCost">50</span> grams</p>
-        <button class="button" onclick="buyLab()">Buy Lab</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>💼 Dealer</h3>
-        <p>Produces 5 grams/sec each</p>
-        <p>Owned: <span id="dealerCount">0</span></p>
-        <p>Cost: <span id="dealerCost">150</span> grams</p>
-        <button class="button" onclick="buyDealer()">Buy Dealer</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🏭 Chemical Factory</h3>
-        <p>Produces 2 grams/sec each</p>
-        <p>Owned: <span id="chemicalFactoryCount">0</span></p>
-        <p>Cost: <span id="chemicalFactoryCost">100</span> grams</p>
-        <button class="button" onclick="buyChemicalFactory()">Buy Chemical Factory</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🛢️ Oil Rig</h3>
-        <p>Produces 5 grams/sec each</p>
-        <p>Owned: <span id="oilRigCount">0</span></p>
-        <p>Cost: <span id="oilRigCost">500</span> grams</p>
-        <button class="button" onclick="buyOilRig()">Buy Oil Rig</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🏚️ Abandoned Warehouse</h3>
-        <p>Produces 10 grams/sec each</p>
-        <p>Owned: <span id="warehouseCount">0</span></p>
-        <p>Cost: <span id="warehouseCost">1500</span> grams</p>
-        <button class="button" onclick="buyWarehouse()">Buy Abandoned Warehouse</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🧠 Click Power</h3>
-        <button class="button" onclick="upgradeClick()">+1 Gram per Click (<span id='upgradeCost'>100</span> grams)</button>
-        <button class="button" onclick="upgradeClickBoost()">+50% Click Power (250 grams)</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🏭 Passive Income</h3>
-        <button class="button" onclick="boostLabPower()">Double Lab Output (500 grams)</button>
-        <button class="button" onclick="boostChemicalFactoryPower()">Double Chemical Factory Output (1000 grams)</button>
-        <button class="button" onclick="boostDealerPower()">Double Dealer Output (1000 grams)</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🔥 Empire Boost</h3>
-        <button class="button" onclick="megaBoost()">Multiply Everything x2 (5000 grams)</button>
-      </div>
-
-      <div class="upgrade-section">
-        <h3>🌟 Prestige</h3>
-        <p>Reset game to earn prestige points</p>
-        <button class="button" onclick="prestige()">Prestige</button>
-      </div>
-    </details>
+  <div class="stats">
+    <p><strong>Grams:</strong> <span id="grams">0</span></p>
+    <p><strong>Grams per Click:</strong> <span id="gpc">1</span></p>
+    <p><strong>Prestige Points:</strong> <span id="pp">0</span></p>
   </div>
+
+  <button class="button" onclick="cook()">Cook Product</button>
+
+  <details class="panel">
+    <summary>🔧 Upgrades Menu</summary>
+    <!-- Lab and Dealer (Added Back) -->
+    <div class="upgrade-section">
+      <h3>🔬 Lab</h3>
+      <p>Produces 1 gram/sec each</p>
+      <p>Owned: <span id="labCount">0</span></p>
+      <p>Cost: <span id="labCost">50</span> grams</p>
+      <button class="button" onclick="buyLab()">Buy Lab</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>💼 Dealer</h3>
+      <p>Produces 5 grams/sec each</p>
+      <p>Owned: <span id="dealerCount">0</span></p>
+      <p>Cost: <span id="dealerCost">150</span> grams</p>
+      <button class="button" onclick="buyDealer()">Buy Dealer</button>
+    </div>
+
+    <!-- New Upgrades -->
+    <div class="upgrade-section">
+      <h3>🏭 Chemical Factory</h3>
+      <p>Produces 2 grams/sec each</p>
+      <p>Owned: <span id="chemicalFactoryCount">0</span></p>
+      <p>Cost: <span id="chemicalFactoryCost">100</span> grams</p>
+      <button class="button" onclick="buyChemicalFactory()">Buy Chemical Factory</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🛢️ Oil Rig</h3>
+      <p>Produces 5 grams/sec each</p>
+      <p>Owned: <span id="oilRigCount">0</span></p>
+      <p>Cost: <span id="oilRigCost">500</span> grams</p>
+      <button class="button" onclick="buyOilRig()">Buy Oil Rig</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🏚️ Abandoned Warehouse</h3>
+      <p>Produces 10 grams/sec each</p>
+      <p>Owned: <span id="warehouseCount">0</span></p>
+      <p>Cost: <span id="warehouseCost">1500</span> grams</p>
+      <button class="button" onclick="buyWarehouse()">Buy Abandoned Warehouse</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🧠 Click Power</h3>
+      <button class="button" onclick="upgradeClick()">+1 Gram per Click (<span id='upgradeCost'>100</span> grams)</button>
+      <button class="button" onclick="upgradeClickBoost()">+50% Click Power (250 grams)</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🏭 Passive Income</h3>
+      <button class="button" onclick="boostLabPower()">Double Lab Output (500 grams)</button>
+      <button class="button" onclick="boostChemicalFactoryPower()">Double Chemical Factory Output (1000 grams)</button>
+      <button class="button" onclick="boostDealerPower()">Double Dealer Output (1000 grams)</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🔥 Empire Boost</h3>
+      <button class="button" onclick="megaBoost()">Multiply Everything x2 (5000 grams)</button>
+    </div>
+
+    <div class="upgrade-section">
+      <h3>🌟 Prestige</h3>
+      <p>Reset game to earn prestige points</p>
+      <button class="button" onclick="prestige()">Prestige (Requires 10000 grams)</button>
+    </div>
+  </details>
+
   <script>
     let grams = 0;
     let gramsPerClick = 1;
+
+    // Upgrades data
+    let labCount = 0, labPower = 1, labCost = 50;
+    let chemicalFactoryCount = 0, chemicalFactoryCost = 100, chemicalFactoryPower = 2;
+    let oilRigCount = 0, oilRigCost = 500, oilRigPower = 5;
+    let warehouseCount = 0, warehouseCost = 1500, warehousePower = 10;
+    let dealerCount = 0, dealerCost = 150, dealerPower = 5;
+
     let prestigePoints = 0;
+    let prestigeMultiplier = 1;
 
-    let labCost = 50;
-    let labCount = 0;
-
-    let dealerCost = 150;
-    let dealerCount = 0;
-
-    let chemicalFactoryCost = 100;
-    let chemicalFactoryCount = 0;
-
-    let oilRigCost = 500;
-    let oilRigCount = 0;
-
-    let warehouseCost = 1500;
-    let warehouseCount = 0;
-
-    let upgradeCost = 100;
-
-    function cook() {
-      grams += gramsPerClick;
-      updateUI();
+    function updateDisplay() {
+      document.getElementById('grams').textContent = grams.toFixed(1);
+      document.getElementById('gpc').textContent = gramsPerClick;
+      document.getElementById('pp').textContent = prestigePoints;
+      document.getElementById('labCount').textContent = labCount;
+      document.getElementById('labCost').textContent = labCost;
+      document.getElementById('chemicalFactoryCount').textContent = chemicalFactoryCount;
+      document.getElementById('chemicalFactoryCost').textContent = chemicalFactoryCost;
+      document.getElementById('oilRigCount').textContent = oilRigCount;
+      document.getElementById('oilRigCost').textContent = oilRigCost;
+      document.getElementById('warehouseCount').textContent = warehouseCount;
+      document.getElementById('warehouseCost').textContent = warehouseCost;
+      document.getElementById('dealerCount').textContent = dealerCount;
+      document.getElementById('dealerCost').textContent = dealerCost;
     }
 
-    function updateUI() {
-      document.getElementById('grams').textContent = `Grahms: ${grams}`;
-      document.getElementById('gpc').textContent = `Grams Per Click: ${gramsPerClick}`;
-      document.getElementById('pp').textContent = `Prestige Points: ${prestigePoints}`;
-      document.getElementById('labCount').textContent = labCount;
-      document.getElementById('dealerCount').textContent = dealerCount;
-      document.getElementById('chemicalFactoryCount').textContent = chemicalFactoryCount;
-      document.getElementById('oilRigCount').textContent = oilRigCount;
-      document.getElementById('warehouseCount').textContent = warehouseCount;
-      document.getElementById('labCost').textContent = labCost;
-      document.getElementById('dealerCost').textContent = dealerCost;
-      document.getElementById('chemicalFactoryCost').textContent = chemicalFactoryCost;
-      document.getElementById('oilRigCost').textContent = oilRigCost;
-      document.getElementById('warehouseCost').textContent = warehouseCost;
-      document.getElementById('upgradeCost').textContent = upgradeCost;
+    function cook() {
+      grams += gramsPerClick * prestigeMultiplier;
+      updateDisplay();
+      saveGame();
     }
 
     function buyLab() {
       if (grams >= labCost) {
         grams -= labCost;
         labCount++;
-        labCost = Math.floor(labCost * 1.5);
-        updateUI();
+        labCost = Math.floor(labCost * 1.2);
+        updateDisplay();
+        saveGame();
       }
     }
 
@@ -177,8 +213,9 @@
       if (grams >= dealerCost) {
         grams -= dealerCost;
         dealerCount++;
-        dealerCost = Math.floor(dealerCost * 1.5);
-        updateUI();
+        dealerCost = Math.floor(dealerCost * 1.2);
+        updateDisplay();
+        saveGame();
       }
     }
 
@@ -186,8 +223,9 @@
       if (grams >= chemicalFactoryCost) {
         grams -= chemicalFactoryCost;
         chemicalFactoryCount++;
-        chemicalFactoryCost = Math.floor(chemicalFactoryCost * 1.5);
-        updateUI();
+        chemicalFactoryCost = Math.floor(chemicalFactoryCost * 1.2);
+        updateDisplay();
+        saveGame();
       }
     }
 
@@ -195,8 +233,9 @@
       if (grams >= oilRigCost) {
         grams -= oilRigCost;
         oilRigCount++;
-        oilRigCost = Math.floor(oilRigCost * 1.5);
-        updateUI();
+        oilRigCost = Math.floor(oilRigCost * 1.3);
+        updateDisplay();
+        saveGame();
       }
     }
 
@@ -204,49 +243,55 @@
       if (grams >= warehouseCost) {
         grams -= warehouseCost;
         warehouseCount++;
-        warehouseCost = Math.floor(warehouseCost * 1.5);
-        updateUI();
+        warehouseCost = Math.floor(warehouseCost * 1.4);
+        updateDisplay();
+        saveGame();
       }
     }
 
     function upgradeClick() {
-      if (grams >= upgradeCost) {
-        grams -= upgradeCost;
+      const cost = gramsPerClick * 100;
+      if (grams >= cost) {
+        grams -= cost;
         gramsPerClick++;
-        upgradeCost = Math.floor(upgradeCost * 1.5);
-        updateUI();
+        updateDisplay();
+        saveGame();
       }
     }
 
     function upgradeClickBoost() {
       if (grams >= 250) {
         grams -= 250;
-        gramsPerClick *= 1.5;
-        updateUI();
+        gramsPerClick = Math.ceil(gramsPerClick * 1.5);
+        updateDisplay();
+        saveGame();
       }
     }
 
     function boostLabPower() {
       if (grams >= 500) {
         grams -= 500;
-        labCount *= 2;
-        updateUI();
+        labPower *= 2;
+        updateDisplay();
+        saveGame();
       }
     }
 
     function boostChemicalFactoryPower() {
       if (grams >= 1000) {
         grams -= 1000;
-        chemicalFactoryCount *= 2;
-        updateUI();
+        chemicalFactoryPower *= 2;
+        updateDisplay();
+        saveGame();
       }
     }
 
     function boostDealerPower() {
       if (grams >= 1000) {
         grams -= 1000;
-        dealerCount *= 2;
-        updateUI();
+        dealerPower *= 2;
+        updateDisplay();
+        saveGame();
       }
     }
 
@@ -254,25 +299,95 @@
       if (grams >= 5000) {
         grams -= 5000;
         gramsPerClick *= 2;
-        updateUI();
+        labPower *= 2;
+        dealerPower *= 2;
+        chemicalFactoryPower *= 2;
+        updateDisplay();
+        saveGame();
       }
     }
 
     function prestige() {
-      grams = 0;
-      gramsPerClick = 1;
-      prestigePoints++;
-      updateUI();
+      if (grams >= 10000) {
+        prestigePoints += 1;
+        prestigeMultiplier *= 2;
+        grams = 0;
+        gramsPerClick = 1;
+        labCount = 0;
+        chemicalFactoryCount = 0;
+        oilRigCount = 0;
+        warehouseCount = 0;
+        dealerCount = 0;
+        updateDisplay();
+        saveGame();
+      }
     }
 
+    // Passive income loop
     setInterval(() => {
-      grams += labCount;
-      grams += dealerCount * 5;
-      grams += chemicalFactoryCount * 2;
-      grams += oilRigCount * 5;
-      grams += warehouseCount * 10;
-      updateUI();
+      grams += (labCount * labPower) + (chemicalFactoryCount * chemicalFactoryPower) + (oilRigCount * oilRigPower) + (warehouseCount * warehousePower) + (dealerCount * dealerPower);
+      updateDisplay();
+      saveGame();
     }, 1000);
+
+    // Auto save every 10s
+    setInterval(saveGame, 10000);
+
+    function saveGame() {
+      const save = {
+        grams,
+        gramsPerClick,
+        labCount,
+        labPower,
+        labCost,
+        chemicalFactoryCount,
+        chemicalFactoryPower,
+        chemicalFactoryCost,
+        oilRigCount,
+        oilRigPower,
+        oilRigCost,
+        warehouseCount,
+        warehousePower,
+        warehouseCost,
+        dealerCount,
+        dealerPower,
+        dealerCost,
+        prestigePoints,
+        prestigeMultiplier
+      };
+      localStorage.setItem('drugEmpireSave', JSON.stringify(save));
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem('drugEmpireSave');
+      if (saved) {
+        const data = JSON.parse(saved);
+        grams = data.grams || 0;
+        gramsPerClick = data.gramsPerClick || 1;
+        labCount = data.labCount || 0;
+        labPower = data.labPower || 1;
+        labCost = data.labCost || 50;
+        chemicalFactoryCount = data.chemicalFactoryCount || 0;
+        chemicalFactoryPower = data.chemicalFactoryPower || 2;
+        chemicalFactoryCost = data.chemicalFactoryCost || 100;
+        oilRigCount = data.oilRigCount || 0;
+        oilRigPower = data.oilRigPower || 5;
+        oilRigCost = data.oilRigCost || 500;
+        warehouseCount = data.warehouseCount || 0;
+        warehousePower = data.warehousePower || 10;
+        warehouseCost = data.warehouseCost || 1500;
+        dealerCount = data.dealerCount || 0;
+        dealerPower = data.dealerPower || 5;
+        dealerCost = data.dealerCost || 150;
+        prestigePoints = data.prestigePoints || 0;
+        prestigeMultiplier = data.prestigeMultiplier || 1;
+        updateDisplay();
+      }
+    }
+
+    loadGame();
+    updateDisplay();
   </script>
 </body>
 </html>
+
