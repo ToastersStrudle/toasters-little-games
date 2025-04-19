@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics Sandbox</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #ccc;
+      font-family: sans-serif;
+    }
+    #scene {
+      display: block;
+    }
+    .sidebar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background-color: #333;
+      color: white;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 100;
+      overflow-y: auto; /* Allows scrolling */
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .toggle-button {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      background-color: #222;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 101;
+    }
+    .button {
+      background-color: #555;
+      color: white;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+    .delete-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: red;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      z-index: 101;
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-button" onclick="toggleSidebar()">☰</div>
+  <div class="sidebar" id="sidebar">
+    <h2>Spawn Menu</h2>
+    <button class="button" onclick="spawnCube()">Spawn Cube</button>
+    <button class="button" onclick="spawnCircle()">Spawn Circle</button>
+    <button class="button" onclick="spawnRectangle()">Spawn Rectangle</button>
+    <button class="button" onclick="spawnRamp()">Spawn Ramp</button>
+    <button class="button" onclick="spawnBouncyBox()">Spawn Bouncy Box</button>
+    <button class="button" onclick="spawnMovingPlatform()">Spawn Moving Platform</button>
+    <button class="button" onclick="spawnRotatingPlatform()">Spawn Rotating Platform</button>
+    <button class="button" onclick="spawnWreckingBall()">Spawn Wrecking Ball</button>
+    <button class="button" onclick="spawnWoodenBox()">Spawn Wooden Box</button>
+    <button class="button" onclick="spawnHeavyBall()">Spawn Heavy Ball</button>
+    <button class="button" onclick="spawnSpring()">Spawn Spring</button>
+    <button class="button" onclick="spawnCar()">Spawn Car</button>
+    <button class="button" onclick="spawnObstacle()">Spawn Obstacle</button>
+    <button class="button" onclick="spawnCrate()">Spawn Crate</button>
+    <button class="button" onclick="spawnTrampoline()">Spawn Trampoline</button>
+    <button class="button" onclick="spawnPlayerShape()">Spawn Player Shape</button>
+  </div>
+  <button class="delete-button" onclick="deleteAllObjects()">Delete All</button>
+  <canvas id="scene"></canvas>
+
+  <script>
+    const Engine = Matter.Engine,
+      Render = Matter.Render,
+      World = Matter.World,
+      Bodies = Matter.Bodies,
+      Mouse = Matter.Mouse,
+      MouseConstraint = Matter.MouseConstraint,
+      Composite = Matter.Composite,
+      Body = Matter.Body;
+
+    const engine = Engine.create();
+    const render = Render.create({
+      element: document.body,
+      engine: engine,
+      canvas: document.getElementById("scene"),
+      options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: "#ccc",
+      },
+    });
+
+    // Create static floor and walls
+    const floor = Bodies.rectangle(
+      window.innerWidth / 2,
+      window.innerHeight - 30,
+      window.innerWidth,
+      60,
+      {
+        isStatic: true,
+        render: { fillStyle: "black" },
+      }
+    );
+
+    const leftWall = Bodies.rectangle(
+      -30,
+      window.innerHeight / 2,
+      60,
+      window.innerHeight,
+      { isStatic: true }
+    );
+
+    const rightWall = Bodies.rectangle(
+      window.innerWidth + 30,
+      window.innerHeight / 2,
+      60,
+      window.innerHeight,
+      { isStatic: true }
+    );
+
+    const ceiling = Bodies.rectangle(
+      window.innerWidth / 2,
+      -30,
+      window.innerWidth,
+      60,
+      { isStatic: true }
+    );
+
+    World.add(engine.world, [floor, leftWall, rightWall, ceiling]);
+
+    // Create mouse and mouse constraint for interaction
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse,
+      constraint: {
+        stiffness: 0.2,
+        render: { visible: false },
+      },
+    });
+    World.add(engine.world, mouseConstraint);
+    render.mouse = mouse;
+
+    Engine.run(engine);
+    Render.run(render);
+
+    let spawnedObjects = [];
+    let playerShape = null;
+
+    // Spawn Cube
+    function spawnCube() {
+      const box = Bodies.rectangle(300, 100, 50, 50, {
+        restitution: 0.4,
+        friction: 0.3,
+        render: {
+          fillStyle: "#FF6347"
+        },
+      });
+      spawnedObjects.push(box);
+      World.add(engine.world, [box]);
+    }
+
+    // Spawn Circle
+    function spawnCircle() {
+      const circle = Bodies.circle(300, 100, 30, {
+        restitution: 0.6,
+        friction: 0.2,
+        render: {
+          fillStyle: "#4682B4"
+        },
+      });
+      spawnedObjects.push(circle);
+      World.add(engine.world, [circle]);
+    }
+
+    // Spawn Rectangle
+    function spawnRectangle() {
+      const rectangle = Bodies.rectangle(300, 100, 80, 30, {
+        restitution: 0.5,
+        friction: 0.4,
+        render: {
+          fillStyle: "#32CD32"
+        },
+      });
+      spawnedObjects.push(rectangle);
+      World.add(engine.world, [rectangle]);
+    }
+
+    // Spawn Ramp
+    function spawnRamp() {
+      const ramp = Bodies.rectangle(500, 300, 200, 20, {
+        angle: Math.PI / 6,
+        isStatic: false,
+        render: {
+          fillStyle: "#FFD700"
+        },
+      });
+      spawnedObjects.push(ramp);
+      World.add(engine.world, [ramp]);
+    }
+
+    // Spawn Moving Platform
+    function spawnMovingPlatform() {
+      const platform = Bodies.rectangle(300, 100, 200, 30, {
+        isStatic: false,
+        render: {
+          fillStyle: "#00FFFF"
+        },
+      });
+      spawnedObjects.push(platform);
+      World.add(engine.world, [platform]);
+      
+      // Add automatic movement
+      let direction = 1;
+      setInterval(() => {
+        const currentVel = Matter.Body.getVelocity(platform);
+        if (platform.position.x > window.innerWidth - 200) {
+          direction = -1;
+        } else if (platform.position.x < 200) {
+          direction = 1;
+        }
+        Matter.Body.setVelocity(platform, { x: 3 * direction, y: currentVel.y });
+      }, 1000 / 60);
+    }
+
+    // Spawn Player Shape (circle)
+    function spawnPlayerShape() {
+      playerShape = Bodies.circle(300, 100, 30, {
+        restitution: 0.5,
+        friction: 0.3,
+        render: { fillStyle: "#8A2BE2" },
+      });
+      World.add(engine.world, [playerShape]);
+    }
+
+    // Spawn Obstacle
+    function spawnObstacle() {
+      const obstacle = Bodies.rectangle(300, 100, 40, 20, {
+        isStatic: false,
+        render: {
+          fillStyle: "#800000"
+        },
+      });
+      spawnedObjects.push(obstacle);
+      World.add(engine.world, [obstacle]);
+    }
+
+    // Spawn Bouncy Box
+    function spawnBouncyBox() {
+      const box = Bodies.rectangle(300, 100, 50, 50, {
+        restitution: 0.9,
+        friction: 0.1,
+        render: {
+          fillStyle: "#FF69B4"
+        },
+      });
+      spawnedObjects.push(box);
+      World.add(engine.world, [box]);
+    }
+
+    // Spawn Rotating Platform
+    function spawnRotatingPlatform() {
+      const platform = Bodies.rectangle(300, 100, 200, 20, {
+        isStatic: false,
+        render: {
+          fillStyle: "#9370DB"
+        },
+      });
+      spawnedObjects.push(platform);
+      World.add(engine.world, [platform]);
+      
+      // Add rotation while allowing movement
+      setInterval(() => {
+        if (!mouseConstraint.body || mouseConstraint.body !== platform) {
+          Matter.Body.rotate(platform, 0.02);
+        }
+      }, 1000 / 60);
+    }
+
+    // Spawn Wrecking Ball
+    function spawnWreckingBall() {
+      const anchor = { x: 300, y: 50 };
+      const ball = Bodies.circle(300, 150, 30, {
+        density: 0.04,
+        render: {
+          fillStyle: "#808080"
+        },
+      });
+      const chain = Matter.Constraint.create({
+        pointA: anchor,
+        bodyB: ball,
+        stiffness: 0.01,
+        render: { visible: true }
+      });
+      spawnedObjects.push(ball);
+      spawnedObjects.push(chain);
+      World.add(engine.world, [ball, chain]);
+    }
+
+    // Spawn Wooden Box
+    function spawnWoodenBox() {
+      const box = Bodies.rectangle(300, 100, 60, 60, {
+        render: {
+          fillStyle: "#8B4513"
+        },
+        friction: 0.8,
+        restitution: 0.2
+      });
+      spawnedObjects.push(box);
+      World.add(engine.world, [box]);
+    }
+
+    // Spawn Heavy Ball
+    function spawnHeavyBall() {
+      const ball = Bodies.circle(300, 100, 40, {
+        density: 0.1,
+        render: {
+          fillStyle: "#2F4F4F"
+        },
+      });
+      spawnedObjects.push(ball);
+      World.add(engine.world, [ball]);
+    }
+
+    // Spawn Spring
+    function spawnSpring() {
+      const base = Bodies.rectangle(300, 150, 80, 20, {
+        isStatic: false,
+        render: {
+          fillStyle: "#C0C0C0"
+        },
+      });
+      const platform = Bodies.rectangle(300, 100, 60, 20, {
+        render: {
+          fillStyle: "#FFD700"
+        },
+      });
+      const spring = Matter.Constraint.create({
+        bodyA: base,
+        bodyB: platform,
+        stiffness: 0.05,
+        damping: 0.1,
+        render: { visible: true }
+      });
+      spawnedObjects.push(base);
+      spawnedObjects.push(platform);
+      spawnedObjects.push(spring);
+      World.add(engine.world, [base, platform, spring]);
+    }
+
+    // Spawn Car
+    function spawnCar() {
+      const carBody = Bodies.rectangle(300, 100, 100, 40, {
+        render: {
+          fillStyle: "#FF0000"
+        },
+      });
+      const wheel1 = Bodies.circle(260, 120, 15, {
+        render: {
+          fillStyle: "#333"
+        },
+      });
+      const wheel2 = Bodies.circle(340, 120, 15, {
+        render: {
+          fillStyle: "#333"
+        },
+      });
+      const axle1 = Matter.Constraint.create({
+        bodyA: carBody,
+        bodyB: wheel1,
+        stiffness: 1
+      });
+      const axle2 = Matter.Constraint.create({
+        bodyA: carBody,
+        bodyB: wheel2,
+        stiffness: 1
+      });
+      spawnedObjects.push(carBody);
+      spawnedObjects.push(wheel1);
+      spawnedObjects.push(wheel2);
+      spawnedObjects.push(axle1);
+      spawnedObjects.push(axle2);
+      World.add(engine.world, [carBody, wheel1, wheel2, axle1, axle2]);
+    }
+
+    // Spawn Crate
+    function spawnCrate() {
+      const crate = Bodies.rectangle(300, 100, 70, 70, {
+        render: {
+          fillStyle: "#DEB887"
+        },
+        friction: 0.5,
+        restitution: 0.3
+      });
+      spawnedObjects.push(crate);
+      World.add(engine.world, [crate]);
+    }
+
+    // Spawn Trampoline
+    function spawnTrampoline() {
+      const base = Bodies.rectangle(300, 150, 120, 20, {
+        isStatic: false,
+        render: {
+          fillStyle: "#4169E1"
+        },
+      });
+      const bouncer = Bodies.rectangle(300, 130, 100, 10, {
+        restitution: 1.5,
+        render: {
+          fillStyle: "#00FF00"
+        },
+      });
+      const spring = Matter.Constraint.create({
+        bodyA: base,
+        bodyB: bouncer,
+        stiffness: 0.08,
+        render: { visible: true }
+      });
+      spawnedObjects.push(base);
+      spawnedObjects.push(bouncer);
+      spawnedObjects.push(spring);
+      World.add(engine.world, [base, bouncer, spring]);
+    }
+
+    // Control the player shape using arrow keys or WASD
+    window.addEventListener('keydown', function(e) {
+      if (playerShape) {
+        const speed = 5;
+        if (e.key === 'ArrowUp' || e.key === 'w') {
+          Matter.Body.translate(playerShape, { x: 0, y: -speed });
+        }
+        if (e.key === 'ArrowDown' || e.key === 's') {
+          Matter.Body.translate(playerShape, { x: 0, y: speed });
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'a') {
+          Matter.Body.translate(playerShape, { x: -speed, y: 0 });
+        }
+        if (e.key === 'ArrowRight' || e.key === 'd') {
+          Matter.Body.translate(playerShape, { x: speed, y: 0 });
+        }
+      }
+    });
+
+    // Check collision and delete player shape when it hits an obstacle
+    Matter.Events.on(engine, 'collisionStart', function(event) {
+      let pairs = event.pairs;
+      for (let i = 0; i < pairs.length; i++) {
+        let pair = pairs[i];
+        if ((pair.bodyA === playerShape || pair.bodyB === playerShape) && (pair.bodyA.isStatic || pair.bodyB.isStatic)) {
+          // If player collides with obstacle, remove the player
+          if (playerShape) {
+            World.remove(engine.world, playerShape);
+            playerShape = null; // Remove player shape from the game
+          }
+        }
+      }
+    });
+
+    // Delete all spawned objects
+    function deleteAllObjects() {
+      for (let obj of spawnedObjects) {
+        World.remove(engine.world, obj);
+      }
+      spawnedObjects = [];
+      if (playerShape) {
+        World.remove(engine.world, playerShape);
+        playerShape = null;
+      }
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+  </script>
+</body>
+</html>
