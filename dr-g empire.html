@@ -12,6 +12,8 @@
       text-align: center;
       margin: 0;
       padding: 0;
+      background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD/2wBDAAoHBwkHBwgJCwsLCwsLCwsLCwsLDx4QGB4eIC8vLx49LC4xLC4zMDAyMTEzMzIvP38/2wBDAQwMDA4RExQeJx5cK/1Rm/iijwiwD6D8ksjxkwAAAAA//2wBDAwsJCwsJDB4iIC8zMzT9MQxkzF9dsGkpjtdg8qd9ox0e4A9yT6AtszvZssDWJm7fqU5ZaUBpt9oiKNceh74yycCcvz5ycdXzGhMjjfEhh6vBMiRGjFnaGg15nDBcp39iYgW0UbX7dtH3Pnny9ayrhg9WzLgaklmT7SkTAtvFcTLFb4Dmn4+l10cPY2c0rxFctfQv0LPp3GFVmXJlHqO0VR7hNj2cdFwTXD9zcvxfkwBlV5lV9V3pfRQ6vfF6P5GAKzH6wfoYac9Zz2Z5NRcYnJylVqzvQEKI2iOKpyZbnp9BLO6uD+7+YHPTPVq0se1lMEnwhOn2tU69mZ7BB0gYwZIS7FvZPAVSrzTK4yGb4hBVVxy3A9kxfuSrdVnJUR0UJb7M6tAw80PZQOXB1BhsxyWmWDCp3u7cqNYr1W4C9cd2wA6/4U8Qd7ZaX4UwNK0GpQTzsspgBeYTB7ks44HzLNjOFSqUjYvRkc+Hg1VXys+QkF43zgbpKZ1BebD9pXn6q1FdZkBpvmlQVGygf+4yTjn5nINp0ulqhu7gj9v02E6lNYPyNSo5Fkg+AA2akF0mt2eFv9OU5VtGDb0OjmAKHRyBeGpP6tVRgJ9RgFzD9c5t5u5H1X7fDpCG9bkswVowKDcbgS2EqMlvOT2GzUw6H/JiDbQUd0X7T5f6Bd8xJfqTqjcoyhwJ2ztrdTI/y9jwMbHuqtmS+bJf0cGnQ2y/cyJ9g8VzyF2dR27LpmLJ0gtBcH2ISZkARvnOkzSK8Ylqf4jcQo7qsFvhGgO//2wBDAwUEAwMIAwgYHRggIF4cJCE8yZMzFzI7Mjg9cjcUtB4zZtPpbeXB4kWk0Xs5TbYQK1ay6zgaCHfMggJrAXlkbImh5okmQ3r4eq2X4c+ckwHx1ADWnbOx/sPTm0mu3dPBzrlDFmd7j7tsnq59H4pTXYzTc6sA6tnkx/gvLmjgyeDqsffS5/m9Y3N2G2lhKTdfdkkMB0y+5bl1dVZsFw3UoZAQySTiRE3It5MpygKr7B4fsfLpmfnWG18mZn16k1h+rF7Ahgby3B89jtGTVyJ7Q4ODK/hbR6KkljbKhjjrlhfSpPEZcF6c5v70wpoYVXfP9LBhvUwnWV3/RAK1p15tFYwdVQZ3O4gnlSZt6x9RmxIVrXgbgH9OlbI9gGqZQY8k6F3xZjA6lr7AAMChfoyXt4pH5ktbX1ZG8o9t9gppXUKhbnwV+TRcH++xlbTtp7mIuD/4gRf7kAVwcpM0s9vUK04FrPOpwnfckpLgfyhB0CE2doVb2Z1fN2EF39pEK6kpTwkV5vPQ7G1zIq0WeKwqr7qZI+fXyysoqmd62BhMhWBIZfRulNJx9j2zVebm4YPVuV3tGeZk79z5gkj8T4zfqgf+6+Rz26w4KT4nsz9uYyqr2Nl6OemkmlBaWf2wvh3PoeEMdZWrFQZnZ6O1gtoD0cBv0dybt9aawXcDpgTGWv9VmLVE9w8tz0u4C24OqioNWy+kpzr7gtm1Vfsgnn76icDtzT13jf1YJhZHTAF8gxOBhGRrFvwVflPpU9FOqgsqk2lFj2ys3A9rAf94r6aHv7vHK0XyK4PtmEl6M2elPfVJt+v7nDlsC6r2eeaxgQuTkmzWhz/5w='); 
+      background-size: cover;
     }
 
     .game-container {
@@ -114,54 +116,60 @@
       <div class="upgrade-section">
         <h3>🌟 Prestige</h3>
         <p>Reset game to earn prestige points</p>
-        <button class="button" onclick="prestige()">Prestige (Requires 10000 grams)</button>
+        <button class="button" onclick="prestige()">Prestige</button>
       </div>
     </details>
   </div>
-
   <script>
     let grams = 0;
     let gramsPerClick = 1;
-
-    // Upgrades data
-    let labCount = 0, labPower = 1, labCost = 50;
-    let chemicalFactoryCount = 0, chemicalFactoryCost = 100, chemicalFactoryPower = 2;
-    let oilRigCount = 0, oilRigCost = 500, oilRigPower = 5;
-    let warehouseCount = 0, warehouseCost = 1500, warehousePower = 10;
-    let dealerCount = 0, dealerCost = 150, dealerPower = 5;
-
     let prestigePoints = 0;
-    let prestigeMultiplier = 1;
 
-    function updateDisplay() {
-      document.getElementById('grams').textContent = grams.toFixed(1);
-      document.getElementById('gpc').textContent = gramsPerClick;
-      document.getElementById('pp').textContent = prestigePoints;
-      document.getElementById('labCount').textContent = labCount;
-      document.getElementById('labCost').textContent = labCost;
-      document.getElementById('chemicalFactoryCount').textContent = chemicalFactoryCount;
-      document.getElementById('chemicalFactoryCost').textContent = chemicalFactoryCost;
-      document.getElementById('oilRigCount').textContent = oilRigCount;
-      document.getElementById('oilRigCost').textContent = oilRigCost;
-      document.getElementById('warehouseCount').textContent = warehouseCount;
-      document.getElementById('warehouseCost').textContent = warehouseCost;
-      document.getElementById('dealerCount').textContent = dealerCount;
-      document.getElementById('dealerCost').textContent = dealerCost;
-    }
+    let labCost = 50;
+    let labCount = 0;
+
+    let dealerCost = 150;
+    let dealerCount = 0;
+
+    let chemicalFactoryCost = 100;
+    let chemicalFactoryCount = 0;
+
+    let oilRigCost = 500;
+    let oilRigCount = 0;
+
+    let warehouseCost = 1500;
+    let warehouseCount = 0;
+
+    let upgradeCost = 100;
 
     function cook() {
-      grams += gramsPerClick * prestigeMultiplier;
-      updateDisplay();
-      saveGame();
+      grams += gramsPerClick;
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById('grams').textContent = `Grahms: ${grams}`;
+      document.getElementById('gpc').textContent = `Grams Per Click: ${gramsPerClick}`;
+      document.getElementById('pp').textContent = `Prestige Points: ${prestigePoints}`;
+      document.getElementById('labCount').textContent = labCount;
+      document.getElementById('dealerCount').textContent = dealerCount;
+      document.getElementById('chemicalFactoryCount').textContent = chemicalFactoryCount;
+      document.getElementById('oilRigCount').textContent = oilRigCount;
+      document.getElementById('warehouseCount').textContent = warehouseCount;
+      document.getElementById('labCost').textContent = labCost;
+      document.getElementById('dealerCost').textContent = dealerCost;
+      document.getElementById('chemicalFactoryCost').textContent = chemicalFactoryCost;
+      document.getElementById('oilRigCost').textContent = oilRigCost;
+      document.getElementById('warehouseCost').textContent = warehouseCost;
+      document.getElementById('upgradeCost').textContent = upgradeCost;
     }
 
     function buyLab() {
       if (grams >= labCost) {
         grams -= labCost;
         labCount++;
-        labCost = Math.floor(labCost * 1.2);
-        updateDisplay();
-        saveGame();
+        labCost = Math.floor(labCost * 1.5);
+        updateUI();
       }
     }
 
@@ -169,9 +177,8 @@
       if (grams >= dealerCost) {
         grams -= dealerCost;
         dealerCount++;
-        dealerCost = Math.floor(dealerCost * 1.2);
-        updateDisplay();
-        saveGame();
+        dealerCost = Math.floor(dealerCost * 1.5);
+        updateUI();
       }
     }
 
@@ -179,9 +186,8 @@
       if (grams >= chemicalFactoryCost) {
         grams -= chemicalFactoryCost;
         chemicalFactoryCount++;
-        chemicalFactoryCost = Math.floor(chemicalFactoryCost * 1.2);
-        updateDisplay();
-        saveGame();
+        chemicalFactoryCost = Math.floor(chemicalFactoryCost * 1.5);
+        updateUI();
       }
     }
 
@@ -189,9 +195,8 @@
       if (grams >= oilRigCost) {
         grams -= oilRigCost;
         oilRigCount++;
-        oilRigCost = Math.floor(oilRigCost * 1.3);
-        updateDisplay();
-        saveGame();
+        oilRigCost = Math.floor(oilRigCost * 1.5);
+        updateUI();
       }
     }
 
@@ -199,55 +204,49 @@
       if (grams >= warehouseCost) {
         grams -= warehouseCost;
         warehouseCount++;
-        warehouseCost = Math.floor(warehouseCost * 1.4);
-        updateDisplay();
-        saveGame();
+        warehouseCost = Math.floor(warehouseCost * 1.5);
+        updateUI();
       }
     }
 
     function upgradeClick() {
-      const cost = gramsPerClick * 100;
-      if (grams >= cost) {
-        grams -= cost;
+      if (grams >= upgradeCost) {
+        grams -= upgradeCost;
         gramsPerClick++;
-        updateDisplay();
-        saveGame();
+        upgradeCost = Math.floor(upgradeCost * 1.5);
+        updateUI();
       }
     }
 
     function upgradeClickBoost() {
       if (grams >= 250) {
         grams -= 250;
-        gramsPerClick = Math.ceil(gramsPerClick * 1.5);
-        updateDisplay();
-        saveGame();
+        gramsPerClick *= 1.5;
+        updateUI();
       }
     }
 
     function boostLabPower() {
       if (grams >= 500) {
         grams -= 500;
-        labPower *= 2;
-        updateDisplay();
-        saveGame();
+        labCount *= 2;
+        updateUI();
       }
     }
 
     function boostChemicalFactoryPower() {
       if (grams >= 1000) {
         grams -= 1000;
-        chemicalFactoryPower *= 2;
-        updateDisplay();
-        saveGame();
+        chemicalFactoryCount *= 2;
+        updateUI();
       }
     }
 
     function boostDealerPower() {
       if (grams >= 1000) {
         grams -= 1000;
-        dealerPower *= 2;
-        updateDisplay();
-        saveGame();
+        dealerCount *= 2;
+        updateUI();
       }
     }
 
@@ -255,61 +254,25 @@
       if (grams >= 5000) {
         grams -= 5000;
         gramsPerClick *= 2;
-        labPower *= 2;
-        dealerPower *= 2;
-        chemicalFactoryPower *= 2;
-        updateDisplay();
-        saveGame();
+        updateUI();
       }
     }
 
     function prestige() {
-      if (grams >= 10000) {
-        prestigePoints += 1;
-        prestigeMultiplier *= 2;
-        grams = 0;
-        gramsPerClick = 1;
-        labCount = 0;
-        chemicalFactoryCount = 0;
-        oilRigCount = 0;
-        warehouseCount = 0;
-        dealerCount = 0;
-        updateDisplay();
-        saveGame();
-      }
+      grams = 0;
+      gramsPerClick = 1;
+      prestigePoints++;
+      updateUI();
     }
 
-    function saveGame() {
-      localStorage.setItem("gameData", JSON.stringify({
-        grams, gramsPerClick, labCount, dealerCount, chemicalFactoryCount, oilRigCount,
-        warehouseCount, labCost, dealerCost, chemicalFactoryCost, oilRigCost, warehouseCost,
-        prestigePoints, prestigeMultiplier
-      }));
-    }
-
-    function loadGame() {
-      const savedData = localStorage.getItem("gameData");
-      if (savedData) {
-        const gameData = JSON.parse(savedData);
-        grams = gameData.grams;
-        gramsPerClick = gameData.gramsPerClick;
-        labCount = gameData.labCount;
-        dealerCount = gameData.dealerCount;
-        chemicalFactoryCount = gameData.chemicalFactoryCount;
-        oilRigCount = gameData.oilRigCount;
-        warehouseCount = gameData.warehouseCount;
-        labCost = gameData.labCost;
-        dealerCost = gameData.dealerCost;
-        chemicalFactoryCost = gameData.chemicalFactoryCost;
-        oilRigCost = gameData.oilRigCost;
-        warehouseCost = gameData.warehouseCost;
-        prestigePoints = gameData.prestigePoints;
-        prestigeMultiplier = gameData.prestigeMultiplier;
-        updateDisplay();
-      }
-    }
-
-    loadGame();
+    setInterval(() => {
+      grams += labCount;
+      grams += dealerCount * 5;
+      grams += chemicalFactoryCount * 2;
+      grams += oilRigCount * 5;
+      grams += warehouseCount * 10;
+      updateUI();
+    }, 1000);
   </script>
 </body>
 </html>
