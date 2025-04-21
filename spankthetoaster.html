@@ -1,111 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spank The Toaster</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #111;
-      overflow: hidden;
-      font-family: sans-serif;
-      color: white;
-      touch-action: none;
-      user-select: none;
-    }
-
-    #gameArea {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #toaster {
-      position: absolute;
-      width: 50vw;
-      height: 50vh;
-      top: 25%;
-      left: 10vw;
-      pointer-events: none;
-      transition: transform 0.2s ease-in-out;
-    }
-
-    #hand {
-      position: absolute;
-      width: 12vw;
-      top: 50%;
-      left: 85vw;
-      transform: translate(-50%, -50%);
-      pointer-events: auto;
-    }
-
-    #resultScreen {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.95);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      z-index: 10;
-      display: none;
-      text-align: center;
-      padding: 20px;
-    }
-
-    #resultText {
-      font-size: 32px;
-    }
-
-    #resultText.special {
-      color: gold;
-      font-size: 48px;
-      text-shadow: 0 0 10px red, 0 0 20px orange;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    #tryAgain {
-      margin-top: 30px;
-      background: #ff3c3c;
-      border: none;
-      color: white;
-      padding: 15px 30px;
-      font-size: 24px;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-
-    #tryAgain:hover {
-      background: #ff1a1a;
-    }
-  </style>
-</head>
-<body>
-
-<div id="gameArea">
-  <img id="toaster" src="https://pngimg.com/uploads/toaster/toaster_PNG46.png" draggable="false">
-  <img id="hand" src="https://creazilla-store.fra1.digitaloceanspaces.com/icons/3412399/cursor-hand-open-line-icon-sm.png" draggable="false">
-  <div id="resultScreen">
-    <div id="resultText">Result goes here</div>
-    <button id="tryAgain">TRY AGAIN</button>
-  </div>
-</div>
-
-<audio id="slapSound" src="https://www.myinstants.com/media/sounds/slap-sound-effect-free.mp3"></audio>
-
 <script>
   const gameArea = document.getElementById("gameArea");
   const toaster = document.getElementById("toaster");
@@ -119,9 +11,8 @@
   let lastTime = null;
   let hasSlapped = false;
   let isDragging = false;
-
-  // Easter egg typing tracker
   let typedKeys = "";
+  let rizzMode = false;
 
   function getHandStartX() {
     return window.innerWidth - hand.offsetWidth * 0.75;
@@ -221,6 +112,19 @@
         return;
       }
 
+      if (rizzMode) {
+        speed *= 18;
+        rizzMode = false;
+        hasSlapped = true;
+        toaster.style.transform = "rotate(-15deg)";
+        setTimeout(() => {
+          toaster.style.transform = "rotate(0deg)";
+        }, 200);
+        slapSound.play();
+        showResult(speed, `RIZZ MODE ACTIVATED<br><span>${Math.round(speed)} px/sec</span><br>18x POWER`);
+        return;
+      }
+
       const maxSpeed = 100000;
       if (speed > maxSpeed) speed = maxSpeed;
 
@@ -240,7 +144,6 @@
         setTimeout(() => {
           toaster.style.transform = "rotate(0deg)";
         }, 200);
-
         slapSound.play();
         showResult(speed);
       }
@@ -257,13 +160,10 @@
 
   hand.addEventListener("mousedown", handleDragStart);
   hand.addEventListener("touchstart", handleDragStart, { passive: false });
-
   window.addEventListener("mousemove", handleMove);
   window.addEventListener("touchmove", handleMove, { passive: false });
-
   window.addEventListener("mouseup", handleRelease);
   window.addEventListener("touchend", handleRelease);
-
   tryAgain.addEventListener("click", resetGame);
 
   window.onload = () => {
@@ -275,14 +175,14 @@
 
   window.addEventListener("keydown", (e) => {
     typedKeys += e.key.toLowerCase();
-    if (typedKeys.length > 10) typedKeys = typedKeys.slice(-10);
-
+    if (typedKeys.length > 20) typedKeys = typedKeys.slice(-20);
     if (typedKeys.includes("cl1pz")) {
       showResult(1000000, "SECRET FOUND<br><span>1,000,000 px/sec</span>");
       typedKeys = "";
     }
+    if (typedKeys.includes("rizz")) {
+      rizzMode = true;
+      typedKeys = "";
+    }
   });
 </script>
-
-</body>
-</html>
