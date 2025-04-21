@@ -1,0 +1,142 @@
+<script>
+  const gameArea = document.getElementById("gameArea");
+  const toaster = document.getElementById("toaster");
+  const hand = document.getElementById("hand");
+  const resultScreen = document.getElementById("resultScreen");
+  const resultText = document.getElementById("resultText");
+  const tryAgain = document.getElementById("tryAgain");
+  const slapSound = document.getElementById("slapSound");
+
+  let lastPos = null;
+  let lastTime = null;
+  let hasSlapped = false;
+  let isDragging = false;
+
+  const getHandStartX = () => window.innerWidth - hand.offsetWidth * 0.75;
+  const updateHand = (x) => hand.style.left = `${x}px`;
+  const getRect = (el) => el.getBoundingClientRect();
+
+  function showResult(speed) {
+    resultText.classList.remove("special");
+    resultText.style.animation = "";
+    resultText.style.color = "white";
+    resultText.style.textShadow = "";
+
+    if (speed >= 50000) {
+      resultText.innerHTML = `💀 DEADLY SLAP 💀<br><span>${Math.round(speed)} px/sec</span><br>You're in the top 10%!`;
+      resultText.classList.add("special");
+      resultText.style.fontSize = "54px";
+      resultText.style.color = "#ff00ff";
+      resultText.style.textShadow = "0 0 10px #ff00ff, 0 0 30px #ff0066";
+      resultText.style.animation = "pulse 0.5s infinite";
+    } else if (speed >= 20000) {
+      resultText.innerHTML = `💥 GODLIKE SLAP! <br><span>${Math.round(speed)} px/sec</span>`;
+      resultText.classList.add("special");
+      resultText.style.fontSize = "48px";
+      resultText.style.color = "gold";
+      resultText.style.textShadow = "0 0 10px red, 0 0 20px orange";
+      resultText.style.animation = "pulse 1s infinite";
+    } else {
+      resultText.innerHTML = `You slapped the toaster at <br><span>${Math.round(speed)} px/sec</span>`;
+      resultText.style.fontSize = "32px";
+    }
+
+    resultScreen.style.display = "flex";
+  }
+
+  function resetGame() {
+    resultScreen.style.display = "none";
+    hasSlapped = false;
+    lastPos = null;
+    lastTime = null;
+    updateHand(getHandStartX());
+    toaster.style.transform = "rotate(0deg)";
+  }
+
+  function handleDragStart(e) {
+    isDragging = true;
+    lastPos = null;
+    lastTime = null;
+  }
+
+  function handleMove(e) {
+    if (!isDragging || hasSlapped) return;
+
+    const point = e.touches ? e.touches[0] : e;
+    const x = point.clientX;
+    const y = point.clientY;
+
+    if (x >= 0 && x <= window.innerWidth - hand.offsetWidth / 2) {
+      updateHand(x);
+    }
+
+    const now = performance.now();
+
+    if (lastPos && lastTime) {
+      const dx = x - lastPos.x;
+      const dist = Math.abs(dx);
+      const dt = (now - lastTime) / 1000;
+
+      if (dt < 0.01 || dist < 10) return;
+
+      let rawSpeed = dist / dt;
+      let speed = rawSpeed * 0.5; // harder now!
+
+      if (speed < 1000) {
+        lastPos = { x, y };
+        lastTime = now;
+        return;
+      }
+
+      const maxSpeed = 100000;
+      if (speed > maxSpeed) speed = maxSpeed;
+
+      const toasterRect = getRect(toaster);
+      const hitboxShrink = 0.15; // 15% margin for difficulty
+      const shrinkX = (toasterRect.right - toasterRect.left) * hitboxShrink;
+      const shrinkY = (toasterRect.bottom - toasterRect.top) * hitboxShrink;
+
+      if (
+        x >= toasterRect.left + shrinkX &&
+        x <= toasterRect.right - shrinkX &&
+        y >= toasterRect.top + shrinkY &&
+        y <= toasterRect.bottom - shrinkY
+      ) {
+        hasSlapped = true;
+        toaster.style.transform = "rotate(-15deg)";
+        setTimeout(() => {
+          toaster.style.transform = "rotate(0deg)";
+        }, 300); // longer cooldown
+
+        slapSound.play();
+        showResult(speed);
+      }
+    }
+
+    lastPos = { x, y };
+    lastTime = now;
+  }
+
+  function handleRelease() {
+    isDragging = false;
+    updateHand(getHandStartX());
+  }
+
+  hand.addEventListener("mousedown", handleDragStart);
+  hand.addEventListener("touchstart", handleDragStart, { passive: false });
+
+  window.addEventListener("mousemove", handleMove);
+  window.addEventListener("touchmove", handleMove, { passive: false });
+
+  window.addEventListener("mouseup", handleRelease);
+  window.addEventListener("touchend", handleRelease);
+
+  tryAgain.addEventListener("click", resetGame);
+
+  window.onload = () => {
+    updateHand(getHandStartX());
+  };
+
+  hand.ondragstart = (e) => e.preventDefault();
+  toaster.ondragstart = (e) => e.preventDefault();
+</script>
