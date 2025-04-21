@@ -1,3 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spank The Toaster</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      overflow: hidden;
+      font-family: sans-serif;
+      color: white;
+      touch-action: none;
+      user-select: none;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #toaster {
+      position: absolute;
+      width: 50vw;
+      height: 50vh;
+      top: 25%;
+      left: 10vw;
+      pointer-events: none;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    #hand {
+      position: absolute;
+      width: 12vw;
+      top: 50%;
+      left: 85vw;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+    }
+
+    #resultScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      z-index: 10;
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #resultText {
+      font-size: 32px;
+    }
+
+    #resultText.special {
+      color: gold;
+      font-size: 48px;
+      text-shadow: 0 0 10px red, 0 0 20px orange;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    #tryAgain {
+      margin-top: 30px;
+      background: #ff3c3c;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      font-size: 24px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    #tryAgain:hover {
+      background: #ff1a1a;
+    }
+  </style>
+</head>
+<body>
+
+<div id="gameArea">
+  <img id="toaster" src="https://pngimg.com/uploads/toaster/toaster_PNG46.png" draggable="false">
+  <img id="hand" src="https://creazilla-store.fra1.digitaloceanspaces.com/icons/3412399/cursor-hand-open-line-icon-sm.png" draggable="false">
+  <div id="resultScreen">
+    <div id="resultText">Result goes here</div>
+    <button id="tryAgain">TRY AGAIN</button>
+  </div>
+</div>
+
+<audio id="slapSound" src="https://www.myinstants.com/media/sounds/slap-sound-effect-free.mp3"></audio>
+
 <script>
   const gameArea = document.getElementById("gameArea");
   const toaster = document.getElementById("toaster");
@@ -12,24 +120,49 @@
   let hasSlapped = false;
   let isDragging = false;
 
-  const getHandStartX = () => window.innerWidth - hand.offsetWidth * 0.75;
-  const updateHand = (x) => hand.style.left = `${x}px`;
-  const getRect = (el) => el.getBoundingClientRect();
+  // Easter egg typing tracker
+  let typedKeys = "";
 
-  function showResult(speed) {
+  function getHandStartX() {
+    return window.innerWidth - hand.offsetWidth * 0.75;
+  }
+
+  function updateHand(x) {
+    hand.style.left = `${x}px`;
+  }
+
+  function getRect(el) {
+    return el.getBoundingClientRect();
+  }
+
+  function showResult(speed, overrideText = null) {
     resultText.classList.remove("special");
     resultText.style.animation = "";
     resultText.style.color = "white";
     resultText.style.textShadow = "";
 
-    if (speed >= 50000) {
+    if (overrideText) {
+      resultText.innerHTML = overrideText;
+      resultText.classList.add("special");
+      resultText.style.fontSize = "52px";
+      resultText.style.color = "#00ffff";
+      resultText.style.textShadow = "0 0 15px #00ffff, 0 0 30px #00ff99";
+      resultText.style.animation = "pulse 0.5s infinite";
+    } else if (Math.round(speed) === 69420) {
+      resultText.innerHTML = `NICE SLAP BRO<br><span>${Math.round(speed)} px/sec</span>`;
+      resultText.classList.add("special");
+      resultText.style.fontSize = "50px";
+      resultText.style.color = "#00ff00";
+      resultText.style.textShadow = "0 0 10px lime, 0 0 25px green";
+      resultText.style.animation = "pulse 1s infinite";
+    } else if (speed >= 50000) {
       resultText.innerHTML = `💀 DEADLY SLAP 💀<br><span>${Math.round(speed)} px/sec</span><br>You're in the top 10%!`;
       resultText.classList.add("special");
       resultText.style.fontSize = "54px";
       resultText.style.color = "#ff00ff";
       resultText.style.textShadow = "0 0 10px #ff00ff, 0 0 30px #ff0066";
       resultText.style.animation = "pulse 0.5s infinite";
-    } else if (speed >= 20000) {
+    } else if (speed >= 15000) {
       resultText.innerHTML = `💥 GODLIKE SLAP! <br><span>${Math.round(speed)} px/sec</span>`;
       resultText.classList.add("special");
       resultText.style.fontSize = "48px";
@@ -80,9 +213,9 @@
       if (dt < 0.01 || dist < 10) return;
 
       let rawSpeed = dist / dt;
-      let speed = rawSpeed * 0.5; // harder now!
+      let speed = rawSpeed * 0.5;
 
-      if (speed < 1000) {
+      if (speed < 1) {
         lastPos = { x, y };
         lastTime = now;
         return;
@@ -92,21 +225,21 @@
       if (speed > maxSpeed) speed = maxSpeed;
 
       const toasterRect = getRect(toaster);
-      const hitboxShrink = 0.15; // 15% margin for difficulty
-      const shrinkX = (toasterRect.right - toasterRect.left) * hitboxShrink;
-      const shrinkY = (toasterRect.bottom - toasterRect.top) * hitboxShrink;
+      const shrinkFactor = 0.15;
+      const offsetX = (toasterRect.width * shrinkFactor) / 2;
+      const offsetY = (toasterRect.height * shrinkFactor) / 2;
 
       if (
-        x >= toasterRect.left + shrinkX &&
-        x <= toasterRect.right - shrinkX &&
-        y >= toasterRect.top + shrinkY &&
-        y <= toasterRect.bottom - shrinkY
+        x >= toasterRect.left + offsetX &&
+        x <= toasterRect.right - offsetX &&
+        y >= toasterRect.top + offsetY &&
+        y <= toasterRect.bottom - offsetY
       ) {
         hasSlapped = true;
         toaster.style.transform = "rotate(-15deg)";
         setTimeout(() => {
           toaster.style.transform = "rotate(0deg)";
-        }, 300); // longer cooldown
+        }, 200);
 
         slapSound.play();
         showResult(speed);
@@ -139,4 +272,17 @@
 
   hand.ondragstart = (e) => e.preventDefault();
   toaster.ondragstart = (e) => e.preventDefault();
+
+  window.addEventListener("keydown", (e) => {
+    typedKeys += e.key.toLowerCase();
+    if (typedKeys.length > 10) typedKeys = typedKeys.slice(-10);
+
+    if (typedKeys.includes("cl1pz")) {
+      showResult(1000000, "SECRET FOUND<br><span>1,000,000 px/sec</span>");
+      typedKeys = "";
+    }
+  });
 </script>
+
+</body>
+</html>
