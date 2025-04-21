@@ -9,7 +9,7 @@ body {
     align-items: center;
     color: white;
     text-align: center;
-    overflow: hidden;
+    overflow-x: hidden; /* only hides horizontal scroll */
 }
 
 .container {
