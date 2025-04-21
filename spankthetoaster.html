@@ -120,7 +120,7 @@
   let hasSlapped = false;
   let isDragging = false;
   let typedKeys = "";
-  let rizzMode = false;
+  let tasterMode = false;
 
   function getHandStartX() {
     return window.innerWidth - hand.offsetWidth * 0.75;
@@ -144,9 +144,9 @@
       resultText.innerHTML = overrideText;
       resultText.classList.add("special");
       resultText.style.fontSize = "52px";
-      resultText.style.color = "#00ffff";
-      resultText.style.textShadow = "0 0 15px #00ffff, 0 0 30px #00ff99";
-      resultText.style.animation = "pulse 0.5s infinite";
+      resultText.style.color = "#ff66ff";
+      resultText.style.textShadow = "0 0 20px #ff66ff, 0 0 40px #ff3399";
+      resultText.style.animation = "pulse 0.4s infinite";
     } else if (Math.round(speed) === 69420) {
       resultText.innerHTML = `NICE SLAP BRO<br><span>${Math.round(speed)} px/sec</span>`;
       resultText.classList.add("special");
@@ -220,16 +220,16 @@
         return;
       }
 
-      if (rizzMode) {
-        speed *= 18;
-        rizzMode = false;
+      if (tasterMode) {
+        speed *= 55;
+        tasterMode = false;
         hasSlapped = true;
         toaster.style.transform = "rotate(-15deg)";
         setTimeout(() => {
           toaster.style.transform = "rotate(0deg)";
         }, 200);
         slapSound.play();
-        showResult(speed, `RIZZ MODE ACTIVATED<br><span>${Math.round(speed)} px/sec</span><br>18x POWER`);
+        showResult(speed, `Gabe is gay<br><span>${Math.round(speed)} px/sec</span>`);
         return;
       }
 
@@ -288,8 +288,8 @@
       showResult(1000000, "SECRET FOUND<br><span>1,000,000 px/sec</span>");
       typedKeys = "";
     }
-    if (typedKeys.includes("rizz")) {
-      rizzMode = true;
+    if (typedKeys.includes("toaster")) {
+      tasterMode = true;
       typedKeys = "";
     }
   });
