@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Memory Match</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #1e1e2f;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+    }
+
+    #game {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 15px;
+      margin: 20px;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #444;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      user-select: none;
+      position: relative;
+    }
+
+    .card.revealed {
+      background: #fff;
+      color: #222;
+    }
+
+    .card.matched {
+      background: #4caf50;
+      color: white;
+      pointer-events: none;
+    }
+
+    #moves {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #ff5555;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    button:hover {
+      background: #e84343;
+    }
+  </style>
+</head>
+<body>
+  <h1>Memory Match</h1>
+  <div id="moves">Moves: 0</div>
+  <div id="game"></div>
+  <button onclick="startGame()">Restart</button>
+
+  <script>
+    const emojis = ['🍕','🍔','🍟','🍿','🍩','🍪','🍫','🍓'];
+    let board = [];
+    let revealed = [];
+    let moves = 0;
+    let lock = false;
+
+    function startGame() {
+      board = shuffle([...emojis, ...emojis]);
+      const game = document.getElementById('game');
+      game.innerHTML = '';
+      revealed = [];
+      moves = 0;
+      lock = false;
+      document.getElementById('moves').textContent = 'Moves: 0';
+
+      board.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.index = index;
+        card.dataset.emoji = emoji;
+        card.addEventListener('click', handleCardClick);
+        game.appendChild(card);
+      });
+    }
+
+    function handleCardClick(e) {
+      if (lock) return;
+
+      const card = e.currentTarget;
+      const index = card.dataset.index;
+
+      if (revealed.some(c => c.index === index) || card.classList.contains('matched')) {
+        return;
+      }
+
+      card.textContent = card.dataset.emoji;
+      card.classList.add('revealed');
+      revealed.push({ index, card, emoji: card.dataset.emoji });
+
+      if (revealed.length === 2) {
+        moves++;
+        document.getElementById('moves').textContent = 'Moves: ' + moves;
+        const [a, b] = revealed;
+        if (a.emoji === b.emoji) {
+          a.card.classList.add('matched');
+          b.card.classList.add('matched');
+          revealed = [];
+          checkWin();
+        } else {
+          lock = true;
+          setTimeout(() => {
+            a.card.textContent = '';
+            b.card.textContent = '';
+            a.card.classList.remove('revealed');
+            b.card.classList.remove('revealed');
+            revealed = [];
+            lock = false;
+          }, 800);
+        }
+      }
+    }
+
+    function checkWin() {
+      const matched = document.querySelectorAll('.card.matched').length;
+      if (matched === board.length) {
+        setTimeout(() => {
+          alert('You won in ' + moves + ' moves!');
+        }, 200);
+      }
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
