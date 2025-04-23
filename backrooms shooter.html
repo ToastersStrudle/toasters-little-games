@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini FPS backrooms shooter</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// --- Load Backrooms Textures ---
+const wallImg = new Image();
+wallImg.crossOrigin = "anonymous";
+wallImg.src = "https://www.redbubble.com/i/t-shirt/The-Backrooms-wallpaper-by-ArtBart/55253407.1YYVU";
+const floorImg = new Image();
+floorImg.src = "data:image/jpeg;base64,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";
+let wallPattern = null, floorPattern = null;
+wallImg.onload = () => { wallPattern = ctx.createPattern(wallImg, 'repeat'); };
+floorImg.onload = () => { floorPattern = ctx.createPattern(floorImg, 'repeat'); };
+
+// --- Flickering Light ---
+let flicker = 1;
+function updateFlicker() {
+  flicker = 0.97 + 0.06 * Math.random();
+  setTimeout(updateFlicker, 30 + Math.random() * 50);
+}
+updateFlicker();
+
+// --- Fog Color ---
+const FOG_COLOR = 'rgba(255, 245, 180, 0.18)'; // pale yellow fog
+
+
+// Set canvas size to window size
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const TILE_SIZE = 64;
+const MAP_SIZE = 40; // 40x40 map
+const PLAYER_START_X = TILE_SIZE * 1.5;
+const PLAYER_START_Y = TILE_SIZE * 1.5;
+
+// Generate a large static map (with a simple maze-like structure)
+const map = Array.from({length: MAP_SIZE}, (_, y) =>
+  Array.from({length: MAP_SIZE}, (_, x) =>
+    (x === 0 || y === 0 || x === MAP_SIZE-1 || y === MAP_SIZE-1 || (x%7===0 && y%4!==0) || (y%7===0 && x%4!==0)) ? 1 : 0
+  )
+);
+
+// Place exit tile far from start
+function pickExitTile() {
+  let minDist = Math.floor(MAP_SIZE * 0.6);
+  let candidates = [];
+  for (let y = 1; y < MAP_SIZE-1; y++) {
+    for (let x = 1; x < MAP_SIZE-1; x++) {
+      if (map[y][x] === 0) {
+        let dx = x - Math.floor(PLAYER_START_X/TILE_SIZE);
+        let dy = y - Math.floor(PLAYER_START_Y/TILE_SIZE);
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > minDist) candidates.push({x, y});
+      }
+    }
+  }
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+const exitTile = pickExitTile();
+map[exitTile.y][exitTile.x] = 2;
+
+function getTile(x, y) {
+  if (x < 0 || y < 0 || y >= map.length || x >= map[0].length) return 1;
+  return map[y][x];
+}
+
+
+const FOV = Math.PI / 3;
+const NUM_RAYS = canvas.width;
+const MAX_DEPTH = 800;
+const MOUSE_SENSITIVITY = 0.002;
+const VERTICAL_SENSITIVITY = 0.002;
+const MAX_VERTICAL_ANGLE = Math.PI / 2.5;
+
+let player = {
+  x: PLAYER_START_X,
+  y: PLAYER_START_Y,
+  angle: 0,
+  verticalAngle: 0
+};
+
+const shots = [];
+const enemies = [];
+const CHASE_RADIUS = TILE_SIZE * 5; // 5 tiles chase radius
+const ENEMY_SPEED = 1;
+
+// Function to spawn a new enemy at a random valid position
+function spawnEnemy() {
+  let x, y;
+  do {
+    x = Math.floor(Math.random() * (MAP_SIZE - 2) + 1) * TILE_SIZE + TILE_SIZE/2;
+    y = Math.floor(Math.random() * (MAP_SIZE - 2) + 1) * TILE_SIZE + TILE_SIZE/2;
+  } while (isWall(x, y));
+
+  enemies.push({
+    x: x,
+    y: y,
+    size: 40,
+    health: 3,
+    alive: true,
+    chasing: false
+  });
+}
+
+// Start spawning enemies every 5 seconds
+setInterval(spawnEnemy, 5000);
+
+function isWall(x, y) {
+  const gridX = Math.floor(x / TILE_SIZE);
+  const gridY = Math.floor(y / TILE_SIZE);
+  return getTile(gridX, gridY) === 1;
+}
+
+function isExit(x, y) {
+  const gridX = Math.floor(x / TILE_SIZE);
+  const gridY = Math.floor(y / TILE_SIZE);
+  return getTile(gridX, gridY) === 2;
+}
+
+// --- Gun/Muzzle Flash State ---
+let muzzleFlashTime = 0;
+
+let gameWon = false;
+let gameOver = false;
+
+// Jumpscare resources
+const jumpscareSound = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAEAAABVgANTU1NTU1Q0NDQ0NDUFBQUFBQXl5eXl5ea2tra2tra3l5eXl5eYaGhoaGhpSUlJSUlKGhoaGhoaGvr6+vr6+8vLy8vLzKysrKysrX19fX19fk5OTk5OTx8fHx8fH///////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAABVjJxHfwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxGIAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+
+function showGameOverScreen() {
+  ctx.save();
+  // Red flash effect
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Game Over text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFFFFF';
+  
+  // Main title
+  ctx.font = 'bold 72px sans-serif';
+  ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 3);
+  
+  // Subtitle
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillText('You were caught!', canvas.width / 2, canvas.height / 2);
+  
+  // Press any key text
+  ctx.font = '24px sans-serif';
+  ctx.fillText('Press SPACE to try again', canvas.width / 2, canvas.height * 0.7);
+  ctx.restore();
+}
+
+function showVictoryScreen() {
+  ctx.save();
+  // Dark overlay
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Victory text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#00FF99';
+  
+  // Main title
+  ctx.font = 'bold 64px sans-serif';
+  ctx.fillText('CONGRATULATIONS!', canvas.width / 2, canvas.height / 3);
+  
+  // Subtitle
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillText('You Escaped the Backrooms!', canvas.width / 2, canvas.height / 2);
+  
+  // Press any key text
+  ctx.font = '24px sans-serif';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('Press SPACE to play again', canvas.width / 2, canvas.height * 0.7);
+  ctx.restore();
+}
+
+function castRays() {
+  let playerGridX = Math.floor(player.x / TILE_SIZE);
+  let playerGridY = Math.floor(player.y / TILE_SIZE);
+  let atExit = isExit(player.x, player.y);
+  
+  // Check for enemy collision
+  if (!gameOver && !gameWon) {
+    for (let enemy of enemies) {
+      if (enemy.alive) {
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const distance = Math.hypot(dx, dy);
+        
+        if (distance < TILE_SIZE/2) { // If enemy touches player
+          gameOver = true;
+          document.exitPointerLock();
+          jumpscareSound.play();
+          break;
+        }
+      }
+    }
+  }
+  
+  if (atExit && !gameWon && !gameOver) {
+    gameWon = true;
+    document.exitPointerLock();
+  }
+  
+  if (gameOver) {
+    showGameOverScreen();
+    return;
+  } else if (gameWon) {
+    showVictoryScreen();
+    return;
+  }
+  let start = player.angle - FOV / 2;
+  let angleStep = FOV / NUM_RAYS;
+  
+  // Draw floor and ceiling
+  // --- Draw floor and ceiling using textures ---
+  if (floorPattern) {
+    ctx.save();
+    ctx.translate(0, canvas.height/2);
+    ctx.fillStyle = floorPattern;
+    ctx.globalAlpha = 0.93;
+    ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = '#bba46b'; // fallback dirty yellow
+    ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+  }
+  // Ceiling: just pale, slightly yellow
+  ctx.fillStyle = 'rgba(255, 250, 210, 0.98)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+
+
+  let rayDistances = new Array(NUM_RAYS).fill(MAX_DEPTH);
+
+  for (let i = 0; i < NUM_RAYS; i++) {
+    let rayAngle = start + i * angleStep;
+    let distance = 0;
+    let hit = false;
+
+    const cos = Math.cos(rayAngle);
+    const sin = Math.sin(rayAngle);
+
+    while (!hit && distance < MAX_DEPTH) {
+      distance += 1;
+      const testX = Math.floor((player.x + cos * distance) / TILE_SIZE);
+      const testY = Math.floor((player.y + sin * distance) / TILE_SIZE);
+
+      if (map[testY] && map[testY][testX] > 0) {
+        hit = true;
+        rayDistances[i] = distance;
+      }
+    }
+
+    let height = Math.min(canvas.height / (distance * 0.01), canvas.height);
+    let wallOffset = (canvas.height - height) / 2;
+    // wallOffset += player.verticalAngle * canvas.height * 0.8; // Disable vertical look affecting wall position
+
+    // --- Wall rendering with texture, flicker, and fog ---
+    let wallAlpha = Math.max(0.7, 1 - distance / MAX_DEPTH);
+    // Check if this ray hits the exit tile
+    let rayGridX = Math.floor((player.x + Math.cos(start + i * angleStep) * distance) / TILE_SIZE);
+    let rayGridY = Math.floor((player.y + Math.sin(start + i * angleStep) * distance) / TILE_SIZE);
+    if (getTile(rayGridX, rayGridY) === 2) {
+      ctx.save();
+      ctx.globalAlpha = 1.0;
+      ctx.fillStyle = '#00FF99';
+      ctx.fillRect(i, wallOffset, 1, height);
+      ctx.restore();
+    } else if (wallPattern && getTile(rayGridX, rayGridY) === 1) {
+      ctx.save();
+      ctx.globalAlpha = wallAlpha * flicker;
+      ctx.translate(i, wallOffset);
+      ctx.fillStyle = wallPattern;
+      ctx.fillRect(0, 0, 1, height);
+      ctx.restore();
+    } else if (getTile(rayGridX, rayGridY) === 1) {
+      // fallback color
+      const brightness = Math.max(0, 255 - distance * 0.4) * flicker;
+      ctx.fillStyle = `rgb(${brightness * 0.95}, ${brightness * 0.9}, 60)`;
+      ctx.fillRect(i, wallOffset, 1, height);
+    }
+    // --- Fog overlay ---
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.5, distance / MAX_DEPTH * 0.7);
+    ctx.fillStyle = FOG_COLOR;
+    ctx.fillRect(i, wallOffset, 1, height);
+    ctx.restore();
+  }
+
+  // Draw enemies
+  enemies.forEach(enemy => {
+    if (enemy.alive) {
+      const dx = enemy.x - player.x;
+      const dy = enemy.y - player.y;
+      const dist = Math.hypot(dx, dy);
+      const angleToEnemy = Math.atan2(dy, dx);
+      let diff = angleToEnemy - player.angle;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+
+      if (Math.abs(diff) < FOV / 2) {
+        const screenX = (0.5 + diff / FOV) * canvas.width;
+        const rayIndex = Math.floor(screenX);
+        
+        if (dist < rayDistances[rayIndex]) {
+          let height = Math.min(canvas.height / (dist * 0.01), canvas.height);
+          let enemyOffset = (canvas.height - height) / 2;
+          // enemyOffset += player.verticalAngle * canvas.height * 0.8; // Disable vertical look affecting enemy position
+                    // Render enemies with yellow tint and fog
+           ctx.save();
+           ctx.globalAlpha = 0.92 * flicker;
+           ctx.fillStyle = 'rgba(220, 200, 60, 0.92)';
+           ctx.fillRect(screenX - enemy.size/2, enemyOffset, enemy.size, height);
+           ctx.restore();
+           // Fog overlay for enemies
+           ctx.save();
+           ctx.globalAlpha = Math.min(0.5, dist / MAX_DEPTH * 0.7);
+           ctx.fillStyle = FOG_COLOR;
+           ctx.fillRect(screenX - enemy.size/2, enemyOffset, enemy.size, height);
+           ctx.restore();
+        }
+      }
+    }
+  });
+
+  // Draw muzzle flash
+  if (shots.length > 0) {
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(canvas.width / 2 - 5, canvas.height - 60, 10, 40);
+  }
+
+  // Draw crosshair
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width / 2 - 10, canvas.height / 2);
+  ctx.lineTo(canvas.width / 2 + 10, canvas.height / 2);
+  ctx.moveTo(canvas.width / 2, canvas.height / 2 - 10);
+  ctx.lineTo(canvas.width / 2, canvas.height / 2 + 10);
+  ctx.stroke();
+}
+
+function movePlayer() {
+  let moveX = 0;
+  let moveY = 0;
+  const speed = 3;
+
+  if (keys['w'] || keys['ArrowUp']) {
+    moveX += Math.cos(player.angle) * speed;
+    moveY += Math.sin(player.angle) * speed;
+  }
+  if (keys['s'] || keys['ArrowDown']) {
+    moveX -= Math.cos(player.angle) * speed;
+    moveY -= Math.sin(player.angle) * speed;
+  }
+  if (keys['a'] || keys['ArrowLeft']) {
+    moveX += Math.cos(player.angle - Math.PI/2) * speed;
+    moveY += Math.sin(player.angle - Math.PI/2) * speed;
+  }
+  if (keys['d'] || keys['ArrowRight']) {
+    moveX += Math.cos(player.angle + Math.PI/2) * speed;
+    moveY += Math.sin(player.angle + Math.PI/2) * speed;
+  }
+
+  if (!isWall(player.x + moveX, player.y)) player.x += moveX;
+  if (!isWall(player.x, player.y + moveY)) player.y += moveY;
+
+  // Update enemy chasing state and movement
+  enemies.forEach(enemy => {
+    if (enemy.alive) {
+      const dx = player.x - enemy.x;
+      const dy = player.y - enemy.y;
+      const distToPlayer = Math.hypot(dx, dy);
+      
+      // Check if player is within chase radius
+      enemy.chasing = distToPlayer <= CHASE_RADIUS;
+      
+      // Move enemy towards player if chasing
+      if (enemy.chasing) {
+        const angle = Math.atan2(dy, dx);
+        const newX = enemy.x + Math.cos(angle) * ENEMY_SPEED;
+        const newY = enemy.y + Math.sin(angle) * ENEMY_SPEED;
+        
+        // Only move if not hitting a wall
+        if (!isWall(newX, enemy.y)) enemy.x = newX;
+        if (!isWall(enemy.x, newY)) enemy.y = newY;
+      }
+    }
+  });
+}
+
+function shoot() {
+  muzzleFlashTime = 120; // Show flash for a short time
+
+  shots.push(Date.now());
+  
+  enemies.forEach(enemy => {
+    if (enemy.alive) {
+      const dx = enemy.x - player.x;
+      const dy = enemy.y - player.y;
+      const dist = Math.hypot(dx, dy);
+      const angleToEnemy = Math.atan2(dy, dx);
+      let diff = angleToEnemy - player.angle;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+
+      if (Math.abs(diff) < 0.05 && dist < 500) {
+        enemy.health--;
+        if (enemy.health <= 0) enemy.alive = false;
+      }
+    }
+  });
+}
+
+// Input handling
+const keys = {};
+
+canvas.addEventListener('click', () => {
+  canvas.requestPointerLock();
+});
+
+function updatePlayerAngle(e) {
+  player.angle += e.movementX * MOUSE_SENSITIVITY;
+  player.verticalAngle -= e.movementY * VERTICAL_SENSITIVITY;  // Negated the Y movement
+  player.verticalAngle = Math.max(-MAX_VERTICAL_ANGLE, Math.min(MAX_VERTICAL_ANGLE, player.verticalAngle));
+}
+
+function handleMouseDown(e) {
+  if (e.button === 0) {
+    shoot();
+  }
+}
+
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas) {
+    document.addEventListener('mousemove', updatePlayerAngle);
+    document.addEventListener('mousedown', handleMouseDown);
+  } else {
+    document.removeEventListener('mousemove', updatePlayerAngle);
+    document.removeEventListener('mousedown', handleMouseDown);
+  }
+});
+
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (gameWon || gameOver) {
+      // Reset game
+      gameWon = false;
+      gameOver = false;
+      player.x = PLAYER_START_X;
+      player.y = PLAYER_START_Y;
+      player.angle = 0;
+      player.verticalAngle = 0;
+      enemies.length = 0; // Clear all enemies
+    }
+  }
+});
+
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+});
+
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  movePlayer();
+  castRays();
+
+  const now = Date.now();
+  while (shots.length > 0 && now - shots[0] > 200) shots.shift();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// --- Draw Gun and Muzzle Flash ---
+function drawGunAndFlash() {
+  const gunWidth = canvas.width * 0.18;
+  const gunHeight = canvas.height * 0.22;
+  const gunX = (canvas.width - gunWidth) / 2;
+  const gunY = canvas.height - gunHeight - 10;
+
+  // Gun body
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = '#444';
+  ctx.fillRect(gunX, gunY, gunWidth, gunHeight);
+  ctx.fillStyle = '#222';
+  ctx.fillRect(gunX + gunWidth * 0.25, gunY + gunHeight * 0.6, gunWidth * 0.5, gunHeight * 0.25);
+  ctx.restore();
+
+  // Muzzle flash
+  if (muzzleFlashTime > 0) {
+    const flashW = gunWidth * 0.34;
+    const flashH = gunHeight * 0.30;
+    const flashX = canvas.width / 2 - flashW / 2;
+    const flashY = gunY - flashH * 0.35;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, muzzleFlashTime / 50);
+    ctx.beginPath();
+    ctx.ellipse(flashX + flashW/2, flashY + flashH/2, flashW/2, flashH/2, 0, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(255, 255, 180, 0.85)';
+    ctx.shadowColor = '#fffca0';
+    ctx.shadowBlur = 40;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// --- Update muzzle flash timer in gameLoop ---
+const _origGameLoop = gameLoop;
+gameLoop = function() {
+  if (muzzleFlashTime > 0) muzzleFlashTime -= 16;
+  _origGameLoop();
+}
+
+// --- Patch castRays to draw gun/flash last ---
+const _origCastRays = castRays;
+castRays = function() {
+  _origCastRays.apply(this, arguments);
+  drawGunAndFlash();
+}
+
+gameLoop();
+</script>
+</body>
+</html>
+
