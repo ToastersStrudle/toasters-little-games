@@ -2,109 +2,138 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>One‑File 3‑D Fishing Prototype</title>
+<title>One‑File Stylish Fishing Demo</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#6ac6ff;font-family:sans-serif}
-#ui{position:absolute;top:10px;left:10px;color:#fff;z-index:1;text-shadow:0 0 4px #000}
-#ui div{margin-bottom:4px}
+html,body{margin:0;height:100%;overflow:hidden;background:#7ecfff;font-family:Inter,Arial,sans-serif}
 canvas{display:block}
-#popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:1.4rem;
-       pointer-events:none;text-shadow:0 0 6px #000;opacity:0;transition:opacity .3s}
+#card{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:6px 14px;
+      background:rgba(0,0,0,.45);border-radius:8px;color:#fff;font-size:14px;text-shadow:0 0 3px #000;
+      pointer-events:none}
+#status{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);min-width:220px;
+        background:rgba(0,0,0,.45);border-radius:8px;padding:8px 14px;text-align:center;color:#fff;
+        font-size:16px;text-shadow:0 0 4px #000;pointer-events:none;opacity:0;transition:opacity .25s}
+#hud{position:absolute;bottom:22px;left:22px;color:#fff;font-size:15px;text-shadow:0 0 4px #000}
+#hud div{margin-top:4px}
 </style>
 </head>
 <body>
-<div id="ui">
-  <div>🎣 Fish: <span id="bag">0</span></div>
-  <div>💰 Coins: <span id="coins">0</span></div>
-  <div>Move: WASD &nbsp;|&nbsp; Cast: Click &nbsp;|&nbsp; Sell: E at pier</div>
+<div id="card">WASD to move • Click to cast/reel • <E> sell at pier</div>
+<div id="hud">
+  <div>🎣 Fish: <span id="bag">0</span></div>
+  <div>💰 Coins: <span id="coins">0</span></div>
 </div>
-<div id="popup"></div>
+<div id="status"></div>
 
 <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.158.0/examples/js/controls/PointerLockControls.js"></script>
 <script>
-/* ----- Setup ----- */
+/* === THREE BASICS === */
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,1000);
+scene.fog=new THREE.Fog(0x7ecfff,40,160);
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,400);
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-document.body.appendChild(renderer.domElement);
+renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
+renderer.setClearColor(0x7ecfff);
 const controls=new THREE.PointerLockControls(camera,renderer.domElement);
 document.addEventListener("click",()=>controls.lock());
-camera.position.set(0,2,6);
-scene.add(controls.getObject());
-const light=new THREE.HemisphereLight(0xffffbb,0x204060,1);scene.add(light);
+camera.position.set(0,2.2,7);scene.add(controls.getObject());
 
-/* ----- Terrain ----- */
-const groundMat=new THREE.MeshLambertMaterial({color:0x228B22});
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),groundMat);
+/* === LIGHTING === */
+scene.add(new THREE.HemisphereLight(0xffffff,0x406080,1.1));
+const sun=new THREE.DirectionalLight(0xffffff,.7);sun.position.set(10,25,20);scene.add(sun);
+
+/* === TERRAIN & WATER === */
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshLambertMaterial({color:0x267226}));
 ground.rotation.x=-Math.PI/2;scene.add(ground);
-const waterMat=new THREE.MeshPhongMaterial({color:0x1e90ff,transparent:true,opacity:.7});
-const water=new THREE.Mesh(new THREE.CircleGeometry(80,64),waterMat);
-water.rotation.x=-Math.PI/2;water.position.y=.1;scene.add(water);
-/* Pier to sell fish */
-const pier=new THREE.Mesh(new THREE.BoxGeometry(6,.5,3),new THREE.MeshLambertMaterial({color:0x8B5A2B}));
-pier.position.set(0,.25,-1.5);scene.add(pier);
 
-/* ----- UI refs ----- */
-const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins"),popup=document.getElementById("popup");
-function flash(text){popup.textContent=text;popup.style.opacity=1;setTimeout(()=>popup.style.opacity=0,1200);}
+const waterGeo=new THREE.PlaneGeometry(180,180,128,128);
+const waterMat=new THREE.ShaderMaterial({
+  uniforms:{time:{value:0}},
+  vertexShader:`varying vec2 vUv;uniform float time;
+  void main(){vUv=uv;vec3 pos=position;float w=sin((pos.x+time)*0.15)+cos((pos.y+time)*0.17);pos.z+=w*0.35;
+  gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);} `,
+  fragmentShader:`varying vec2 vUv;void main(){vec3 c=mix(vec3(0.12,0.44,0.75),vec3(0.15,0.55,0.9),vUv.y);
+  gl_FragColor=vec4(c,0.8);} `,
+  transparent:true
+});
+const water=new THREE.Mesh(waterGeo,waterMat);water.rotation.x=-Math.PI/2;water.position.y=.15;scene.add(water);
 
-/* ----- Game Data ----- */
-const fishTable=[["Minnow",2],["Perch",4],["Bass",8],["Salmon",15],["Sturgeon",30],["Golden Koi",60]];
-let state="idle",bobber=null,biteTimer=null,bag=0,coins=0;
+/* === PIER === */
+const pier=new THREE.Mesh(new THREE.BoxGeometry(6,.6,3),new THREE.MeshLambertMaterial({color:0x8b5a2b}));
+pier.position.set(0,.3,-1.5);scene.add(pier);
 
-/* ----- Helpers ----- */
-function randomFish(){const r=Math.pow(Math.random(),1.8);return fishTable[Math.floor(r*fishTable.length)];}
+/* === ROD (held model) === */
+const rodGroup=new THREE.Group();controls.getObject().add(rodGroup);
+rodGroup.position.set(0.4,-0.4,-1.0);
+const rodMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.4,8),
+                             new THREE.MeshStandardMaterial({color:0x5c3b19}));
+rodMesh.rotation.z=Math.PI/2;rodMesh.position.x=1.2;rodGroup.add(rodMesh);
+let rodTargetRot=0,castAnim=0;
+
+/* === UI refs === */
+const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins"),status=document.getElementById("status");
+function popup(t){status.textContent=t;status.style.opacity=1;setTimeout(()=>status.style.opacity=0,1500);}
+
+/* === GAME STATE === */
+const fishTable=[["Minnow",2],["Perch",4],["Bass",8],["Salmon",15],["Sturgeon",30],["Golden Koi",60]];
+let bag=0,coins=0,state="idle",bobber,biteTimer=null;
+function randFish(){const r=Math.pow(Math.random(),1.8);return fishTable[Math.floor(r*fishTable.length)];}
+
+/* === INPUT === */
+window.addEventListener("mousedown",()=>{state==="idle"?cast():state==="bite" && reel();});
+window.addEventListener("keydown",e=>{if(e.key==="e")sell();});
+
+/* === CAST & REEL === */
 function cast(){
-  const dir=new THREE.Vector3();camera.getWorldDirection(dir);
-  const castPos=camera.position.clone().add(dir.multiplyScalar(20));
-  if(Math.abs(castPos.y)>5) return; // too high or low
-  bobber=new THREE.Mesh(new THREE.SphereGeometry(.25),new THREE.MeshLambertMaterial({color:0xff0000}));
-  bobber.position.copy(castPos).setY(.5);scene.add(bobber);
-  state="waiting";flash("Cast!");
-  biteTimer=setTimeout(()=>{state="bite";flash("Hooked! Click!");},2000+Math.random()*3000);
+  const v=new THREE.Vector3();camera.getWorldDirection(v);
+  const hit=camera.position.clone().add(v.multiplyScalar(25));
+  if(Math.abs(hit.y)>6) return popup("Aim toward water");
+  bobber=new THREE.Mesh(new THREE.SphereGeometry(.23),new THREE.MeshLambertMaterial({color:0xea4335}));
+  bobber.position.copy(hit).setY(.5);scene.add(bobber);
+  state="waiting";popup("Cast!");
+  rodTargetRot=-0.8;castAnim=.3;
+  biteTimer=setTimeout(()=>{state="bite";popup("Hooked! Click!");},2000+Math.random()*3000);
 }
 function reel(){
   clearTimeout(biteTimer);scene.remove(bobber);bobber=null;
-  const fish=randomFish();bag++;bagEl.textContent=bag;
-  flash(`Caught ${fish[0]} (+${fish[1]}¢)`);state="idle";
+  const f=randFish();bag++;bagEl.textContent=bag;popup(`Caught ${f[0]} (+${f[1]}¢)`);
+  state="idle";rodTargetRot=0;castAnim=.3;
 }
-function trySell(){
-  if(camera.position.distanceTo(pier.position)>4){flash("Get closer to pier");return;}
-  if(!bag){flash("No fish to sell");return;}
-  let value=0;for(let i=0;i<bag;i++){value+=4;} // flat price per fish
-  coins+=value;coinsEl.textContent=coins;bag=0;bagEl.textContent=bag;
-  flash(`Sold catch for ${value}¢`);
+function sell(){
+  if(camera.position.distanceTo(pier.position)>4){popup("Stand on pier");return;}
+  if(!bag){popup("No fish");return;}
+  const earnings=bag*6;coins+=earnings;coinsEl.textContent=coins;bag=0;bagEl.textContent=0;
+  popup(`Sold for ${earnings}¢`);
 }
 
-/* ----- Input ----- */
-window.addEventListener("mousedown",()=>{if(state==="idle")cast();else if(state==="bite")reel();});
-window.addEventListener("keydown",e=>{if(e.key==="e")trySell();});
-
-/* ----- Simple Walking ----- */
-const keys={};window.addEventListener("keydown",e=>keys[e.key]=true);
-window.addEventListener("keyup",e=>keys[e.key]=false);
+/* === MOVEMENT keys === */
+const keys={};addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 function move(dt){
-  const speed=5;const dir=new THREE.Vector3();
+  const speed=6,dir=new THREE.Vector3();
   if(keys.w)dir.z-=1;if(keys.s)dir.z+=1;if(keys.a)dir.x-=1;if(keys.d)dir.x+=1;
   dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),camera.rotation.y);
   controls.getObject().position.add(dir.multiplyScalar(speed*dt));
+  /* sway hand */
+  rodGroup.rotation.x=Math.sin(performance.now()/240)*0.04;
 }
 
-/* ----- Main Loop ----- */
+/* === LOOP === */
 let prev=performance.now();
-function animate(){
-  requestAnimationFrame(animate);
-  const now=performance.now();const dt=(now-prev)/1000;prev=now;
+function loop(){
+  requestAnimationFrame(loop);
+  const now=performance.now(),dt=(now-prev)/1000;prev=now;
   move(dt);
+  water.material.uniforms.time.value+=dt*3;
+  /* rod ease */
+  if(castAnim>0){castAnim=Math.max(0,castAnim-dt);rodMesh.rotation.y+=((rodTargetRot-rodMesh.rotation.y)*4*dt);}
   renderer.render(scene,camera);
 }
-animate();
+loop();
 
-/* ----- Resize ----- */
-addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);});
+/* === responsive === */
+onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);};
 </script>
 </body>
 </html>
