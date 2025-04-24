@@ -2,138 +2,122 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>One‑File Stylish Fishing Demo</title>
+<title>Fishing Demo — Robust Version</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#7ecfff;font-family:Inter,Arial,sans-serif}
+html,body{margin:0;height:100%;overflow:hidden;background:#7ecfff;font-family:sans-serif}
 canvas{display:block}
-#card{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:6px 14px;
-      background:rgba(0,0,0,.45);border-radius:8px;color:#fff;font-size:14px;text-shadow:0 0 3px #000;
-      pointer-events:none}
-#status{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);min-width:220px;
-        background:rgba(0,0,0,.45);border-radius:8px;padding:8px 14px;text-align:center;color:#fff;
-        font-size:16px;text-shadow:0 0 4px #000;pointer-events:none;opacity:0;transition:opacity .25s}
-#hud{position:absolute;bottom:22px;left:22px;color:#fff;font-size:15px;text-shadow:0 0 4px #000}
-#hud div{margin-top:4px}
+#start{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#0009;color:#fff;
+       padding:12px 18px;border-radius:10px;font-size:18px;text-align:center}
+#hud{position:absolute;bottom:20px;left:20px;color:#fff;text-shadow:0 0 4px #000;font-size:15px}
+#hud div{margin-top:6px}
+#popup{position:absolute;bottom:50%;left:50%;transform:translate(-50%,0);color:#fff;font-size:18px;
+       text-shadow:0 0 6px #000;opacity:0;transition:opacity .3s}
 </style>
 </head>
 <body>
-<div id="card">WASD to move • Click to cast/reel • <E> sell at pier</div>
-<div id="hud">
-  <div>🎣 Fish: <span id="bag">0</span></div>
-  <div>💰 Coins: <span id="coins">0</span></div>
+<div id="start">CLICK TO START</div>
+<div id="hud" style="display:none">
+  <div>Fish: <span id="bag">0</span></div>
+  <div>Coins: <span id="coins">0</span></div>
+  <div>Left‑click=Cast/Reel • E=Sell at pier</div>
 </div>
-<div id="status"></div>
+<div id="popup"></div>
 
 <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.158.0/examples/js/controls/PointerLockControls.js"></script>
 <script>
-/* === THREE BASICS === */
+/* === init === */
 const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0x7ecfff,40,160);
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,400);
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
-renderer.setClearColor(0x7ecfff);
-const controls=new THREE.PointerLockControls(camera,renderer.domElement);
-document.addEventListener("click",()=>controls.lock());
-camera.position.set(0,2.2,7);scene.add(controls.getObject());
+scene.fog=new THREE.Fog(0x7ecfff,50,180);
+const cam=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,400);
+const ren=new THREE.WebGLRenderer({antialias:true});
+ren.setSize(innerWidth,innerHeight);document.body.appendChild(ren.domElement);
+ren.setClearColor(0x7ecfff);
+const ctrl=new THREE.PointerLockControls(cam,ren.domElement);
 
-/* === LIGHTING === */
-scene.add(new THREE.HemisphereLight(0xffffff,0x406080,1.1));
-const sun=new THREE.DirectionalLight(0xffffff,.7);sun.position.set(10,25,20);scene.add(sun);
+const startBtn=document.getElementById("start"),hud=document.getElementById("hud"),popup=document.getElementById("popup");
+startBtn.onclick=()=>{ctrl.lock();};
+ctrl.addEventListener("lock",()=>{startBtn.style.display="none";hud.style.display="block";});
+ctrl.getObject().position.set(0,3,15);scene.add(ctrl.getObject());
 
-/* === TERRAIN & WATER === */
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshLambertMaterial({color:0x267226}));
+scene.add(new THREE.HemisphereLight(0xffffff,0x405070,1.1));
+const sun=new THREE.DirectionalLight(0xffffff,.7);sun.position.set(15,20,15);scene.add(sun);
+
+/* terrain */
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshLambertMaterial({color:0x2a7c32}));
 ground.rotation.x=-Math.PI/2;scene.add(ground);
 
-const waterGeo=new THREE.PlaneGeometry(180,180,128,128);
-const waterMat=new THREE.ShaderMaterial({
-  uniforms:{time:{value:0}},
-  vertexShader:`varying vec2 vUv;uniform float time;
-  void main(){vUv=uv;vec3 pos=position;float w=sin((pos.x+time)*0.15)+cos((pos.y+time)*0.17);pos.z+=w*0.35;
-  gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);} `,
-  fragmentShader:`varying vec2 vUv;void main(){vec3 c=mix(vec3(0.12,0.44,0.75),vec3(0.15,0.55,0.9),vUv.y);
-  gl_FragColor=vec4(c,0.8);} `,
-  transparent:true
-});
-const water=new THREE.Mesh(waterGeo,waterMat);water.rotation.x=-Math.PI/2;water.position.y=.15;scene.add(water);
+/* water */
+const waterTex=new THREE.TextureLoader().load("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="); // 1‑px placeholder
+waterTex.wrapS=waterTex.wrapT=THREE.RepeatWrapping;waterTex.repeat.set(64,64);
+const water=new THREE.Mesh(new THREE.CircleGeometry(80,64),
+              new THREE.MeshPhongMaterial({color:0x1e90ff,transparent:true,opacity:.75,map:waterTex}));
+water.rotation.x=-Math.PI/2;water.position.y=.15;scene.add(water);
 
-/* === PIER === */
+/* pier */
 const pier=new THREE.Mesh(new THREE.BoxGeometry(6,.6,3),new THREE.MeshLambertMaterial({color:0x8b5a2b}));
 pier.position.set(0,.3,-1.5);scene.add(pier);
 
-/* === ROD (held model) === */
-const rodGroup=new THREE.Group();controls.getObject().add(rodGroup);
-rodGroup.position.set(0.4,-0.4,-1.0);
-const rodMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.4,8),
-                             new THREE.MeshStandardMaterial({color:0x5c3b19}));
-rodMesh.rotation.z=Math.PI/2;rodMesh.position.x=1.2;rodGroup.add(rodMesh);
-let rodTargetRot=0,castAnim=0;
+/* rod */
+const rodGroup=new THREE.Group();ctrl.getObject().add(rodGroup);
+rodGroup.position.set(0.45,-0.5,-1.0);
+const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,2.4,8),new THREE.MeshStandardMaterial({color:0x5c3b19}));
+rod.rotation.z=Math.PI/2;rod.position.x=1.2;rodGroup.add(rod);
 
-/* === UI refs === */
-const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins"),status=document.getElementById("status");
-function popup(t){status.textContent=t;status.style.opacity=1;setTimeout(()=>status.style.opacity=0,1500);}
+/* UI refs */
+const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins");
+function flash(t){popup.textContent=t;popup.style.opacity=1;setTimeout(()=>popup.style.opacity=0,1400);}
 
-/* === GAME STATE === */
-const fishTable=[["Minnow",2],["Perch",4],["Bass",8],["Salmon",15],["Sturgeon",30],["Golden Koi",60]];
-let bag=0,coins=0,state="idle",bobber,biteTimer=null;
-function randFish(){const r=Math.pow(Math.random(),1.8);return fishTable[Math.floor(r*fishTable.length)];}
+/* game vars */
+const fishes=[["Common",4],["Bass",8],["Salmon",15],["Sturgeon",30]],keys={};
+let bag=0,coins=0,state="idle",bobber,timer=null;
 
-/* === INPUT === */
-window.addEventListener("mousedown",()=>{state==="idle"?cast():state==="bite" && reel();});
-window.addEventListener("keydown",e=>{if(e.key==="e")sell();});
-
-/* === CAST & REEL === */
+/* helpers */
+function randFish(){return fishes[Math.floor(Math.random()*fishes.length)];}
 function cast(){
-  const v=new THREE.Vector3();camera.getWorldDirection(v);
-  const hit=camera.position.clone().add(v.multiplyScalar(25));
-  if(Math.abs(hit.y)>6) return popup("Aim toward water");
-  bobber=new THREE.Mesh(new THREE.SphereGeometry(.23),new THREE.MeshLambertMaterial({color:0xea4335}));
+  const dir=new THREE.Vector3();cam.getWorldDirection(dir);
+  const hit=cam.position.clone().add(dir.multiplyScalar(25));
+  if(hit.y<-1||hit.y>5){flash("Aim toward water");return;}
+  bobber=new THREE.Mesh(new THREE.SphereGeometry(.25),new THREE.MeshLambertMaterial({color:0xff3333}));
   bobber.position.copy(hit).setY(.5);scene.add(bobber);
-  state="waiting";popup("Cast!");
-  rodTargetRot=-0.8;castAnim=.3;
-  biteTimer=setTimeout(()=>{state="bite";popup("Hooked! Click!");},2000+Math.random()*3000);
+  state="wait";flash("Cast!");
+  timer=setTimeout(()=>{state="bite";flash("Hooked! Click!");},2500+Math.random()*2000);
 }
 function reel(){
-  clearTimeout(biteTimer);scene.remove(bobber);bobber=null;
-  const f=randFish();bag++;bagEl.textContent=bag;popup(`Caught ${f[0]} (+${f[1]}¢)`);
-  state="idle";rodTargetRot=0;castAnim=.3;
+  clearTimeout(timer);scene.remove(bobber);bobber=null;
+  const f=randFish();bag++;bagEl.textContent=bag;flash(`Caught ${f[0]} (+${f[1]}¢)`);state="idle";
 }
 function sell(){
-  if(camera.position.distanceTo(pier.position)>4){popup("Stand on pier");return;}
-  if(!bag){popup("No fish");return;}
-  const earnings=bag*6;coins+=earnings;coinsEl.textContent=coins;bag=0;bagEl.textContent=0;
-  popup(`Sold for ${earnings}¢`);
+  if(ctrl.getObject().position.distanceTo(pier.position)>4){flash("Stand on pier");return;}
+  if(!bag){flash("No fish");return;}
+  const val=bag*6;coins+=val;coinsEl.textContent=coins;bag=0;bagEl.textContent=0;flash(`Sold for ${val}¢`);
 }
 
-/* === MOVEMENT keys === */
-const keys={};addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+/* input */
+addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(e.key==="e")sell();});
+addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
+addEventListener("mousedown",()=>{if(state==="idle")cast();else if(state==="bite")reel();});
+
+/* movement */
 function move(dt){
-  const speed=6,dir=new THREE.Vector3();
-  if(keys.w)dir.z-=1;if(keys.s)dir.z+=1;if(keys.a)dir.x-=1;if(keys.d)dir.x+=1;
-  dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),camera.rotation.y);
-  controls.getObject().position.add(dir.multiplyScalar(speed*dt));
-  /* sway hand */
-  rodGroup.rotation.x=Math.sin(performance.now()/240)*0.04;
+  const v=new THREE.Vector3();
+  if(keys.w)v.z-=1;if(keys.s)v.z+=1;if(keys.a)v.x-=1;if(keys.d)v.x+=1;
+  v.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),cam.rotation.y);
+  ctrl.getObject().position.add(v.multiplyScalar(6*dt));
 }
 
-/* === LOOP === */
+/* loop */
 let prev=performance.now();
 function loop(){
   requestAnimationFrame(loop);
   const now=performance.now(),dt=(now-prev)/1000;prev=now;
   move(dt);
-  water.material.uniforms.time.value+=dt*3;
-  /* rod ease */
-  if(castAnim>0){castAnim=Math.max(0,castAnim-dt);rodMesh.rotation.y+=((rodTargetRot-rodMesh.rotation.y)*4*dt);}
-  renderer.render(scene,camera);
+  ren.render(scene,cam);
 }
 loop();
 
-/* === responsive === */
-onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);};
+/* resize */
+onresize=()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);};
 </script>
 </body>
 </html>
