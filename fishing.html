@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Web Fishing Prototype</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:sans-serif;background:#87cefa;color:#fff}
+#game{position:relative;width:100%;height:100%;perspective:900px;cursor:none}
+.overlay{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;text-align:center}
+#msg{top:8%}
+#inventory{bottom:6%;font-size:0.9rem}
+.crosshair{width:12px;height:12px;top:50%;left:50%;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;position:absolute}
+#coins{position:absolute;top:8%;right:4%;font-size:1.1rem}
+.scene{width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.15s}
+.ground{position:absolute;width:4000px;height:4000px;background:#228B22;transform:rotateX(90deg) translateZ(-50px)}
+.water{width:2000px;height:2000px;background:rgba(30,144,255,0.8);transform:rotateX(90deg) translateZ(-52px)}
+.rod{position:absolute;bottom:0;left:50%;width:4px;height:180px;background:#8b5a2b;transform-origin:bottom left;transition:transform 0.4s}
+.shop{position:absolute;width:160px;height:160px;background:#b5651d;bottom:0;left:50%;transform:translate(-50%,-80px) rotateX(90deg)}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="scene" class="scene">
+    <div class="ground"></div>
+    <div class="water"></div>
+    <div id="shop" class="shop"></div>
+  </div>
+  <div id="msg" class="overlay"></div>
+  <div id="inventory" class="overlay"></div>
+  <div id="coins">💰 0</div>
+  <div class="crosshair"></div>
+  <div id="rod" class="rod"></div>
+</div>
+<script>
+const fishTable=[["Minnow",2],["Sunfish",4],["Bluegill",5],["Perch",6],["Crappie",7],["Bass",10],["Catfish",12],["Pike",15],["Carp",18],["Salmon",25],["Musky",30],["Sturgeon",45],["Golden Koi",80],["Legendary Swordfish",120]];
+let coins=0,bag=[],state="idle",biteTimeout=null,rodIndex=0;
+const msg=document.getElementById("msg");
+const inv=document.getElementById("inventory");
+const coinEl=document.getElementById("coins");
+const rod=document.getElementById("rod");
+const scene=document.getElementById("scene");
+function show(t){msg.textContent=t;setTimeout(()=>msg.textContent="",1600);}
+function randomFish(){const idx=Math.floor(Math.pow(Math.random(),1.7)*fishTable.length);return fishTable[idx];}
+function updateInv(){inv.textContent="Catch: "+bag.map(f=>f[0]).join(", ");}
+function setCoins(v){coins+=v;coinEl.textContent="💰 "+coins;}
+document.body.addEventListener("click",()=>game.requestPointerLock?.());
+let yaw=0,pitch=0;
+const game=document.getElementById("game");
+document.addEventListener("mousemove",e=>{if(document.pointerLockElement!==game)return;yaw-=e.movementX*0.08;pitch=Math.max(-40,Math.min(40,pitch-e.movementY*0.08));scene.style.transform=`rotateX(${pitch}deg) rotateY(${yaw}deg)`;});
+function cast(){rod.style.transform=`rotateZ(-45deg) translateX(${rodIndex*12}px)`;show("Cast!");state="waiting";biteTimeout=setTimeout(()=>{show("Nibble…");state="bite";show("Hook! Click to reel");},2000+Math.random()*4000);}
+function reel(){clearTimeout(biteTimeout);rod.style.transform=`rotateZ(0deg) translateX(${rodIndex*12}px)`;const fish=randomFish();bag.push(fish);updateInv();show(`Caught: ${fish[0]} (+${fish[1]}¢)`);state="idle";}
+window.addEventListener("wheel",e=>{rodIndex=(rodIndex+(e.deltaY<0?1:-1)+5)%5;rod.style.transform=`translateX(${rodIndex*12}px)`;});
+window.addEventListener("mousedown",()=>{if(state==="idle")cast();else if(state==="bite")reel();});
+window.addEventListener("keydown",e=>{if(e.key==="e"&& nearShop()){if(!bag.length){show("No fish");return;}const total=bag.reduce((s,f)=>s+f[1],0);setCoins(total);bag=[];updateInv();show(`Sold for ${total}¢`);}});
+function nearShop(){return Math.abs(pitch)>30;}
+</script>
+</body>
+</html>
