@@ -2,79 +2,109 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>3D Fishing Prototype</title>
+<title>One‑File 3‑D Fishing Prototype</title>
 <style>
-body,html{margin:0;overflow:hidden;height:100%;background:#87ceeb}
-#ui{position:absolute;top:10px;left:10px;color:#fff;font-family:sans-serif;z-index:1}
-#ui div{margin-bottom:5px}
+html,body{margin:0;height:100%;overflow:hidden;background:#6ac6ff;font-family:sans-serif}
+#ui{position:absolute;top:10px;left:10px;color:#fff;z-index:1;text-shadow:0 0 4px #000}
+#ui div{margin-bottom:4px}
 canvas{display:block}
+#popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:1.4rem;
+       pointer-events:none;text-shadow:0 0 6px #000;opacity:0;transition:opacity .3s}
 </style>
 </head>
 <body>
 <div id="ui">
-  <div id="msg"></div>
-  <div>Fish: <span id="bag">0</span></div>
-  <div>Coins: <span id="coins">0</span></div>
+  <div>🎣 Fish: <span id="bag">0</span></div>
+  <div>💰 Coins: <span id="coins">0</span></div>
+  <div>Move: WASD &nbsp;|&nbsp; Cast: Click &nbsp;|&nbsp; Sell: E at pier</div>
 </div>
-<script src="https://unpkg.com/three@0.142.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.142.0/examples/js/controls/PointerLockControls.js"></script>
+<div id="popup"></div>
+
+<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.158.0/examples/js/controls/PointerLockControls.js"></script>
 <script>
-let scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000),renderer=new THREE.WebGLRenderer({antialias:1});
-renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
-let controls=new THREE.PointerLockControls(camera,renderer.domElement);
-document.body.addEventListener("click",()=>controls.lock());
+/* ----- Setup ----- */
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,1000);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
+const controls=new THREE.PointerLockControls(camera,renderer.domElement);
+document.addEventListener("click",()=>controls.lock());
+camera.position.set(0,2,6);
 scene.add(controls.getObject());
-camera.position.set(0,2,5);
-let light=new THREE.DirectionalLight(0xffffff,1);light.position.set(5,10,7);scene.add(light);
-let ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshLambertMaterial({color:0x228B22}));
+const light=new THREE.HemisphereLight(0xffffbb,0x204060,1);scene.add(light);
+
+/* ----- Terrain ----- */
+const groundMat=new THREE.MeshLambertMaterial({color:0x228B22});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),groundMat);
 ground.rotation.x=-Math.PI/2;scene.add(ground);
-let water=new THREE.Mesh(new THREE.PlaneGeometry(200,200,32,32),new THREE.MeshLambertMaterial({color:0x1e90ff,transparent:1,opacity:0.6}));
-water.rotation.x=-Math.PI/2;water.position.y=0.1;scene.add(water);
-let raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2(),state="idle",bobber,fishMesh;
-let fishCount=0,coins=0;
-const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins"),msgEl=document.getElementById("msg");
-const fishTypes=[["Minnow",2,0xffff00],["Bass",10,0xff0000],["Salmon",25,0xff8000],["Koi",80,0xffffff]];
-function show(t){msgEl.textContent=t;setTimeout(()=>msgEl.textContent="",1500)}
+const waterMat=new THREE.MeshPhongMaterial({color:0x1e90ff,transparent:true,opacity:.7});
+const water=new THREE.Mesh(new THREE.CircleGeometry(80,64),waterMat);
+water.rotation.x=-Math.PI/2;water.position.y=.1;scene.add(water);
+/* Pier to sell fish */
+const pier=new THREE.Mesh(new THREE.BoxGeometry(6,.5,3),new THREE.MeshLambertMaterial({color:0x8B5A2B}));
+pier.position.set(0,.25,-1.5);scene.add(pier);
+
+/* ----- UI refs ----- */
+const bagEl=document.getElementById("bag"),coinsEl=document.getElementById("coins"),popup=document.getElementById("popup");
+function flash(text){popup.textContent=text;popup.style.opacity=1;setTimeout(()=>popup.style.opacity=0,1200);}
+
+/* ----- Game Data ----- */
+const fishTable=[["Minnow",2],["Perch",4],["Bass",8],["Salmon",15],["Sturgeon",30],["Golden Koi",60]];
+let state="idle",bobber=null,biteTimer=null,bag=0,coins=0;
+
+/* ----- Helpers ----- */
+function randomFish(){const r=Math.pow(Math.random(),1.8);return fishTable[Math.floor(r*fishTable.length)];}
 function cast(){
-  raycaster.setFromCamera({x:0,y:0},{camera});
-  let i=raycaster.intersectObject(water);
-  if(!i.length) return;
-  bobber=new THREE.Mesh(new THREE.SphereGeometry(0.2),new THREE.MeshLambertMaterial({color:0xff0000}));
-  bobber.position.copy(i[0].point).setY(0.5);
-  scene.add(bobber);state="waiting";show("Cast!");
-  setTimeout(()=>{state="bite";show("Hooked! Click to reel")},2000+Math.random()*3000);
+  const dir=new THREE.Vector3();camera.getWorldDirection(dir);
+  const castPos=camera.position.clone().add(dir.multiplyScalar(20));
+  if(Math.abs(castPos.y)>5) return; // too high or low
+  bobber=new THREE.Mesh(new THREE.SphereGeometry(.25),new THREE.MeshLambertMaterial({color:0xff0000}));
+  bobber.position.copy(castPos).setY(.5);scene.add(bobber);
+  state="waiting";flash("Cast!");
+  biteTimer=setTimeout(()=>{state="bite";flash("Hooked! Click!");},2000+Math.random()*3000);
 }
-let anims=[];
 function reel(){
-  if(!bobber) return;
-  let f=fishTypes[Math.floor(Math.pow(Math.random(),1.5)*fishTypes.length)];
-  fishMesh=new THREE.Mesh(new THREE.SphereGeometry(0.3),new THREE.MeshLambertMaterial({color:f[2]}));
-  fishMesh.position.copy(bobber.position);
-  scene.add(fishMesh);
-  scene.remove(bobber);bobber=null;
-  anims.push({m:fishMesh,target:new THREE.Vector3().copy(camera.position),v:f});
-  state="idle";show("Reeling...");
+  clearTimeout(biteTimer);scene.remove(bobber);bobber=null;
+  const fish=randomFish();bag++;bagEl.textContent=bag;
+  flash(`Caught ${fish[0]} (+${fish[1]}¢)`);state="idle";
 }
-window.addEventListener("mousedown",()=>{if(state==="idle")cast();else if(state==="bite")reel()});
-window.addEventListener("keydown",e=>{if(e.key==="e"&&controls.getObject().position.distanceTo(new THREE.Vector3(0,2,0))<3){
-  if(!fishCount) return show("No fish");
-  coins+=fishCount*5;
-  fishCount=0;bagEl.textContent=fishCount;coinsEl.textContent=coins;show("Sold all");
-}});
+function trySell(){
+  if(camera.position.distanceTo(pier.position)>4){flash("Get closer to pier");return;}
+  if(!bag){flash("No fish to sell");return;}
+  let value=0;for(let i=0;i<bag;i++){value+=4;} // flat price per fish
+  coins+=value;coinsEl.textContent=coins;bag=0;bagEl.textContent=bag;
+  flash(`Sold catch for ${value}¢`);
+}
+
+/* ----- Input ----- */
+window.addEventListener("mousedown",()=>{if(state==="idle")cast();else if(state==="bite")reel();});
+window.addEventListener("keydown",e=>{if(e.key==="e")trySell();});
+
+/* ----- Simple Walking ----- */
+const keys={};window.addEventListener("keydown",e=>keys[e.key]=true);
+window.addEventListener("keyup",e=>keys[e.key]=false);
+function move(dt){
+  const speed=5;const dir=new THREE.Vector3();
+  if(keys.w)dir.z-=1;if(keys.s)dir.z+=1;if(keys.a)dir.x-=1;if(keys.d)dir.x+=1;
+  dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),camera.rotation.y);
+  controls.getObject().position.add(dir.multiplyScalar(speed*dt));
+}
+
+/* ----- Main Loop ----- */
+let prev=performance.now();
 function animate(){
   requestAnimationFrame(animate);
-  let dt=0.05;
-  for(let a of anims){
-    a.m.position.lerp(a.target,dt);
-    if(a.m.position.distanceTo(a.target)<0.5){
-      scene.remove(a.m);
-      fishCount++;bagEl.textContent=fishCount;
-      anims=anims.filter(x=>x!==a);
-    }
-  }
+  const now=performance.now();const dt=(now-prev)/1000;prev=now;
+  move(dt);
   renderer.render(scene,camera);
 }
 animate();
+
+/* ----- Resize ----- */
+addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);});
 </script>
 </body>
 </html>
