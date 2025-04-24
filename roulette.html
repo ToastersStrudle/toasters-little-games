@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .game-area {
+            flex: 2;
+        }
+        .controls {
+            flex: 1;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #rouletteWheel {
+            border: 2px solid gold;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+        .bet-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chip {
+            padding: 10px 20px;
+            background: gold;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .chip:hover {
+            transform: scale(1.05);
+        }
+        .shop {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .shop-item {
+            background: #3a3a3a;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .shop-item:hover {
+            background: #4a4a4a;
+        }
+        .upgrades-panel {
+            position: fixed;
+            right: -350px; /* Start hidden */
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: #1a1a1a;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .upgrades-panel.open {
+            right: 0;
+        }
+
+        .panel-toggle {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2a2a2a;
+            padding: 15px 10px;
+            border-radius: 10px 0 0 10px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-toggle:hover {
+            background: #3a3a3a;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        .upgrade-category {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+        }
+
+        .category-title {
+            color: #FFD700;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .upgrade-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+            background: #3a3a3a;
+            opacity: 0.4;
+            transition: all 0.3s;
+        }
+        .upgrade-item.active {
+            opacity: 1;
+            background: linear-gradient(45deg, #3a3a3a, #4a4a4a);
+            border: 1px solid #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+        .upgrade-icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2a2a2a;
+            border-radius: 50%;
+            color: #FFD700;
+            font-size: 18px;
+        }
+        .upgrade-info {
+            flex-grow: 1;
+        }
+        .upgrade-name {
+            font-weight: bold;
+            color: #FFD700;
+            margin: 0;
+        }
+        .upgrade-description {
+            font-size: 0.8em;
+            color: #aaa;
+            margin: 0;
+        }
+        #balance {
+            font-size: 24px;
+            color: gold;
+            margin-bottom: 20px;
+        }
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .number-btn {
+            padding: 10px;
+            background: #3a3a3a;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .number-btn.red { background: #c41e3a; }
+        .number-btn.black { background: #000; }
+        .number-btn.green { background: #008000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-area">
+            <canvas id="rouletteWheel" width="500" height="500"></canvas>
+            <div class="number-grid" id="numberGrid"></div>
+        </div>
+        <div class="controls">
+            <div id="balance">Balance: $1000</div>
+
+            <div class="bet-controls">
+                <input type="number" id="betAmount" placeholder="Enter bet amount" min="1" value="10">
+                <button class="chip" onclick="placeBet('red')">Bet on Red</button>
+                <button class="chip" onclick="placeBet('black')">Bet on Black</button>
+                <button class="chip" onclick="placeBet('green')">Bet on Green (0)</button>
+                <button class="chip" id="spinButton" onclick="spin()">SPIN!</button>
+            </div>
+
+            <div class="shop">
+                <h3>Shop</h3>
+                <div class="shop-grid">
+                    <h4 style="grid-column: 1/-1; color: #FFD700; margin: 10px 0 5px;">🎲 Luck & Chance</h4>
+                    <div class="shop-item" onclick="buyItem('lucky_charm', 500)">
+                        <h4>Lucky Charm 🍀</h4>
+                        <p>Cost: $500</p>
+                        <p>5% extra win chance</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('fortune_cookie', 750)">
+                        <h4>Fortune Cookie 🥠</h4>
+                        <p>Cost: $750</p>
+                        <p>10% chance to double wins</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('rabbit_foot', 600)">
+                        <h4>Rabbit's Foot 🐰</h4>
+                        <p>Cost: $600</p>
+                        <p>3% chance to avoid losses</p>
+                    </div>
+
+                    <h4 style="grid-column: 1/-1; color: #FFD700; margin: 10px 0 5px;">💰 Multipliers</h4>
+                    <div class="shop-item" onclick="buyItem('golden_chip', 1000)">
+                        <h4>Golden Chip 💰</h4>
+                        <p>Cost: $1000</p>
+                        <p>2x win multiplier</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('diamond_chip', 2000)">
+                        <h4>Diamond Chip 💎</h4>
+                        <p>Cost: $2000</p>
+                        <p>3x win multiplier</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('platinum_chip', 5000)">
+                        <h4>Platinum Chip ⭐</h4>
+                        <p>Cost: $5000</p>
+                        <p>4x win multiplier</p>
+                    </div>
+
+                    <h4 style="grid-column: 1/-1; color: #FFD700; margin: 10px 0 5px;">👑 VIP Benefits</h4>
+                    <div class="shop-item" onclick="buyItem('vip_status', 2000)">
+                        <h4>VIP Status 👑</h4>
+                        <p>Cost: $2000</p>
+                        <p>Special betting options</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('high_roller', 3000)">
+                        <h4>High Roller 🎯</h4>
+                        <p>Cost: $3000</p>
+                        <p>Higher betting limits</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('whale_status', 10000)">
+                        <h4>Whale Status 🐋</h4>
+                        <p>Cost: $10000</p>
+                        <p>Exclusive features</p>
+                    </div>
+
+                    <h4 style="grid-column: 1/-1; color: #FFD700; margin: 10px 0 5px;">🎮 Special Features</h4>
+                    <div class="shop-item" onclick="buyItem('auto_spin', 1500)">
+                        <h4>Auto Spin 🔄</h4>
+                        <p>Cost: $1500</p>
+                        <p>Automatic spins</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('win_streak', 2500)">
+                        <h4>Win Streak 🔥</h4>
+                        <p>Cost: $2500</p>
+                        <p>Consecutive win bonus</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('insurance', 3000)">
+                        <h4>Insurance 🛡️</h4>
+                        <p>Cost: $3000</p>
+                        <p>50% loss recovery</p>
+                    </div>
+
+                    <h4 style="grid-column: 1/-1; color: #FFD700; margin: 10px 0 5px;">🌟 Prestige</h4>
+                    <div class="shop-item" onclick="buyItem('gold_frame', 1000)">
+                        <h4>Gold Frame 🖼️</h4>
+                        <p>Cost: $1000</p>
+                        <p>Fancy effects</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('custom_colors', 1500)">
+                        <h4>Custom Colors 🎨</h4>
+                        <p>Cost: $1500</p>
+                        <p>Wheel customization</p>
+                    </div>
+                    <div class="shop-item" onclick="buyItem('animation', 2000)">
+                        <h4>Special Effects ✨</h4>
+                        <p>Cost: $2000</p>
+                        <p>Enhanced animations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="shop">
+        <h2>Shop</h2>
+        <div class="shop-items">
+            <div class="shop-item" onclick="buyItem('lucky_charm', 500)">
+                <h3>Lucky Charm</h3>
+                <p>Increases winning chance by 5%</p>
+                <p>Cost: $500</p>
+            </div>
+            <div class="shop-item" onclick="buyItem('golden_chip', 1000)">
+                <h3>Golden Chip</h3>
+                <p>2x Multiplier on wins</p>
+                <p>Cost: $1000</p>
+            </div>
+            <div class="shop-item" onclick="buyItem('vip_status', 2000)">
+                <h3>VIP Status</h3>
+                <p>Unlock special betting options</p>
+                <p>Cost: $2000</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrades Panel -->
+    <div class="panel-toggle" onclick="toggleUpgradesPanel()">
+        <span style="writing-mode: vertical-rl; text-orientation: mixed;">⚡ UPGRADES ⚡</span>
+    </div>
+    <div class="upgrades-panel" id="upgradesPanel">
+        <div class="panel-content">
+            <h2 style="color: #FFD700; margin-top: 0;">Active Upgrades</h2>
+            <div class="upgrade-category">
+                <h3 class="category-title">🎲 Luck & Chance</h3>
+                <div class="upgrade-item" id="lucky_charm_upgrade">
+                    <div class="upgrade-icon">🍀</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Lucky Charm</p>
+                        <p class="upgrade-description">5% extra win chance</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="fortune_cookie_upgrade">
+                    <div class="upgrade-icon">🥠</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Fortune Cookie</p>
+                        <p class="upgrade-description">10% chance to double wins</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="rabbit_foot_upgrade">
+                    <div class="upgrade-icon">🐰</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Rabbit's Foot</p>
+                        <p class="upgrade-description">3% chance to avoid losses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="upgrade-category">
+                <h3 class="category-title">💰 Multipliers</h3>
+                <div class="upgrade-item" id="golden_chip_upgrade">
+                    <div class="upgrade-icon">💰</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Golden Chip</p>
+                        <p class="upgrade-description">2x win multiplier</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="diamond_chip_upgrade">
+                    <div class="upgrade-icon">💎</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Diamond Chip</p>
+                        <p class="upgrade-description">3x win multiplier</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="platinum_chip_upgrade">
+                    <div class="upgrade-icon">⭐</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Platinum Chip</p>
+                        <p class="upgrade-description">4x win multiplier</p>
+                    </div>
+                </div>
+            </div>
+            <div class="upgrade-category">
+                <h3 class="category-title">👑 VIP Benefits</h3>
+                <div class="upgrade-item" id="vip_status_upgrade">
+                    <div class="upgrade-icon">👑</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">VIP Status</p>
+                        <p class="upgrade-description">Special betting options</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="high_roller_upgrade">
+                    <div class="upgrade-icon">🎯</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">High Roller</p>
+                        <p class="upgrade-description">Unlock higher betting limits</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="whale_status_upgrade">
+                    <div class="upgrade-icon">🐋</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Whale Status</p>
+                        <p class="upgrade-description">Exclusive high-stakes features</p>
+                    </div>
+                </div>
+            </div>
+            <div class="upgrade-category">
+                <h3 class="category-title">🎮 Special Features</h3>
+                <div class="upgrade-item" id="auto_spin_upgrade">
+                    <div class="upgrade-icon">🔄</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Auto Spin</p>
+                        <p class="upgrade-description">Enable automatic spins</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="win_streak_upgrade">
+                    <div class="upgrade-icon">🔥</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Win Streak</p>
+                        <p class="upgrade-description">Bonus on consecutive wins</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="insurance_upgrade">
+                    <div class="upgrade-icon">🛡️</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Insurance</p>
+                        <p class="upgrade-description">Recover 50% of losses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="upgrade-category">
+                <h3 class="category-title">🌟 Prestige</h3>
+                <div class="upgrade-item" id="gold_frame_upgrade">
+                    <div class="upgrade-icon">🖼️</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Gold Frame</p>
+                        <p class="upgrade-description">Fancy visual effects</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="custom_colors_upgrade">
+                    <div class="upgrade-icon">🎨</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Custom Colors</p>
+                        <p class="upgrade-description">Personalize wheel colors</p>
+                    </div>
+                </div>
+                <div class="upgrade-item" id="animation_upgrade">
+                    <div class="upgrade-icon">✨</div>
+                    <div class="upgrade-info">
+                        <p class="upgrade-name">Special Effects</p>
+                        <p class="upgrade-description">Enhanced animations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load saved data from localStorage or use defaults
+        let gameData = JSON.parse(localStorage.getItem('rouletteGameData')) || {
+            balance: 1000,
+            items: {
+                lucky_charm: false,
+                golden_chip: false,
+                vip_status: false
+            }
+        };
+
+        let balance = gameData.balance;
+        let currentBet = 0;
+        let betType = '';
+        let isSpinning = false;
+        let items = gameData.items || {
+            lucky_charm: false,
+            fortune_cookie: false,
+            rabbit_foot: false,
+            golden_chip: false,
+            diamond_chip: false,
+            platinum_chip: false,
+            vip_status: false,
+            high_roller: false,
+            whale_status: false,
+            auto_spin: false,
+            win_streak: false,
+            insurance: false,
+            gold_frame: false,
+            custom_colors: false,
+            animation: false
+        };
+
+        function resetGame() {
+            balance = 1000;
+            currentBet = 0;
+            items = {
+                lucky_charm: false,
+                golden_chip: false,
+                vip_status: false
+            };
+            alert('Game Over! Your progress has been reset.');
+            saveGameData();
+            updateBalance();
+        }
+
+        function saveGameData() {
+            localStorage.setItem('rouletteGameData', JSON.stringify({
+                balance: balance,
+                items: items
+            }));
+        }
+
+        // Only reset if player has zero balance after a loss
+        function checkGameOver() {
+            if (balance <= 0 && currentBet === 0 && !isSpinning) {
+                resetGame();
+            }
+        }
+
+        const canvas = document.getElementById('rouletteWheel');
+        const ctx = canvas.getContext('2d');
+        const numbers = [
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
+            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+        ];
+
+        let ballX = 0;
+        let ballY = 0;
+        let ballRotation = 0;
+        let ballRadius = 8;
+        let ballTrailPoints = [];
+        const maxTrailPoints = 10;
+
+        function drawWheel(rotation, ballAngle = 0, ballDistance = 180) {
+            ctx.clearRect(0, 0, 500, 500);
+            
+            // Draw outer rim glow
+            const rimGlowGradient = ctx.createRadialGradient(250, 250, 195, 250, 250, 205);
+            rimGlowGradient.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
+            rimGlowGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            ctx.fillStyle = rimGlowGradient;
+            ctx.beginPath();
+            ctx.arc(250, 250, 205, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(250, 250);
+
+            // Draw the outer rim
+            ctx.beginPath();
+            ctx.arc(0, 0, 200, 0, Math.PI * 2);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = '#FFD700';
+            ctx.stroke();
+
+            ctx.rotate(rotation);
+
+            const segmentAngle = (Math.PI * 2) / 37;
+            
+            // Draw the wheel segments with gradients
+            numbers.forEach((number, i) => {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, 200, i * segmentAngle, (i + 1) * segmentAngle);
+                
+                let baseColor;
+                if (number === 0) baseColor = '#008000';
+                else if (number % 2 === 0) baseColor = '#000000';
+                else baseColor = '#c41e3a';
+                
+                const segmentGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 200);
+                segmentGradient.addColorStop(0, baseColor);
+                segmentGradient.addColorStop(0.7, baseColor);
+                segmentGradient.addColorStop(1, '#000000');
+                
+                ctx.fillStyle = segmentGradient;
+                ctx.fill();
+                
+                // Add metallic effect
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.stroke();
+
+                // Draw numbers with 3D effect
+                ctx.save();
+                ctx.rotate(i * segmentAngle + segmentAngle / 2);
+                ctx.translate(130, 0);
+                ctx.rotate(-rotation - (i * segmentAngle + segmentAngle / 2));
+                
+                // Larger number background for better visibility
+                ctx.beginPath();
+                ctx.arc(0, 0, 18, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fill();
+
+                // Number with metallic effect
+                ctx.font = 'bold 28px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Number shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                ctx.fillText(number.toString(), 1, 1);
+                
+                // Main number
+                const numberGradient = ctx.createLinearGradient(-20, -15, 20, 15);
+                numberGradient.addColorStop(0, '#FFD700');
+                numberGradient.addColorStop(0.5, '#FFFFFF');
+                numberGradient.addColorStop(1, '#FFD700');
+                ctx.fillStyle = numberGradient;
+                ctx.fillText(number.toString(), 0, 0);
+                
+                // Number outline
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeText(number.toString(), 0, 0);
+                ctx.restore();
+            });
+
+            // Draw inner circles with metallic effect
+            const circles = [
+                { radius: 160, color: '#2a2a2a' },
+                { radius: 140, color: '#1a1a1a' },
+                { radius: 120, color: '#2a2a2a' }
+            ];
+
+            circles.forEach(({ radius, color }) => {
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                const circleGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                circleGradient.addColorStop(0, color);
+                circleGradient.addColorStop(0.7, color);
+                circleGradient.addColorStop(1, '#000000');
+                ctx.fillStyle = circleGradient;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFD700';
+                ctx.stroke();
+            });
+
+            // Draw center decoration
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+            centerGradient.addColorStop(0, '#FFD700');
+            centerGradient.addColorStop(1, '#B8860B');
+            ctx.fillStyle = centerGradient;
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Calculate ball position
+            ballX = 250 + Math.cos(ballAngle) * ballDistance;
+            ballY = 250 + Math.sin(ballAngle) * ballDistance;
+
+            // Update ball trail
+            ballTrailPoints.push({ x: ballX, y: ballY });
+            if (ballTrailPoints.length > maxTrailPoints) {
+                ballTrailPoints.shift();
+            }
+
+            // Draw ball trail
+            ballTrailPoints.forEach((point, index) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ballRadius * (index / maxTrailPoints), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 215, 0, ${index / maxTrailPoints * 0.3})`;
+                ctx.fill();
+            });
+
+            // Draw the ball with 3D effect
+            const ballGradient = ctx.createRadialGradient(
+                ballX - 3, ballY - 3, 0,
+                ballX, ballY, ballRadius
+            );
+            ballGradient.addColorStop(0, '#FFFFFF');
+            ballGradient.addColorStop(0.3, '#FFD700');
+            ballGradient.addColorStop(1, '#B8860B');
+
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = ballGradient;
+            ctx.fill();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+
+            // Add ball highlight
+            ctx.beginPath();
+            ctx.arc(ballX - 3, ballY - 3, 3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fill();
+        }
+
+        function toggleUpgradesPanel() {
+            const panel = document.getElementById('upgradesPanel');
+            panel.classList.toggle('open');
+        }
+
+        function updateUpgrades() {
+            // Update all upgrade items
+            Object.keys(items).forEach(item => {
+                const element = document.getElementById(`${item}_upgrade`);
+                if (element) {
+                    element.classList.toggle('active', items[item]);
+                }
+            });
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = `Balance: $${balance}`;
+            updateUpgrades();
+            checkGameOver();
+        }
+
+        function placeBet(type) {
+            if (isSpinning) return;
+            const amount = parseInt(document.getElementById('betAmount').value);
+            if (amount > balance) {
+                alert('Not enough funds!');
+                return;
+            }
+            if (amount < 1) {
+                alert('Minimum bet is $1');
+                return;
+            }
+            currentBet = amount;
+            betType = type;
+            balance -= amount;
+            updateBalance();
+            saveGameData();
+        }
+
+        async function spin() {
+            if (isSpinning || currentBet === 0) return;
+            isSpinning = true;
+            document.getElementById('spinButton').disabled = true;
+
+            const initialSpinUp = 2000; // Initial speed-up phase
+            const fastSpin = 4000;      // Maintain high speed
+            const slowDown = 4000;      // Gradual slow-down
+            const finalBounce = 2000;   // Final ball bounce
+            const totalDuration = initialSpinUp + fastSpin + slowDown + finalBounce;
+
+            let wheelRotation = 0;
+            let ballAngle = 0;
+            let ballDistance = 180;
+            let startTime = null;
+            const finalNumber = Math.floor(Math.random() * 37);
+            const finalAngle = (finalNumber / 37) * (Math.PI * 2);
+
+            function easeInOutQuad(t) {
+                return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+            }
+
+            function animate(currentTime) {
+                if (!startTime) startTime = currentTime;
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / totalDuration, 1);
+
+                // Calculate phase-specific progress
+                const phase1 = Math.min(elapsed / initialSpinUp, 1);
+                const phase2 = Math.max(0, Math.min((elapsed - initialSpinUp) / fastSpin, 1));
+                const phase3 = Math.max(0, Math.min((elapsed - initialSpinUp - fastSpin) / slowDown, 1));
+                const phase4 = Math.max(0, Math.min((elapsed - initialSpinUp - fastSpin - slowDown) / finalBounce, 1));
+
+                // Wheel rotation speed varies by phase
+                let wheelSpeed = 0;
+                if (phase1 < 1) {
+                    wheelSpeed = 0.2 + phase1 * 0.4; // Speed up
+                } else if (phase2 < 1) {
+                    wheelSpeed = 0.6; // Maintain fast speed
+                } else if (phase3 < 1) {
+                    wheelSpeed = 0.6 * (1 - easeInOutQuad(phase3)); // Slow down
+                } else {
+                    wheelSpeed = 0.05 * (1 - phase4); // Final slow rotation
+                }
+
+                wheelRotation += wheelSpeed;
+
+                // Ball animation
+                let ballSpeed = 0;
+                if (phase1 < 1) {
+                    ballSpeed = 0.3 + phase1 * 0.7;
+                    ballDistance = 180;
+                } else if (phase2 < 1) {
+                    ballSpeed = 1.0;
+                    ballDistance = 180 - Math.sin(phase2 * Math.PI * 8) * 10;
+                } else if (phase3 < 1) {
+                    ballSpeed = 1.0 * (1 - easeInOutQuad(phase3));
+                    ballDistance = 180 - Math.sin(phase3 * Math.PI * 4) * (20 * (1 - phase3));
+                } else {
+                    // Final bounce and settle
+                    const bounceHeight = Math.sin(phase4 * Math.PI * 2) * (1 - phase4) * 30;
+                    ballDistance = 180 - bounceHeight;
+                    ballSpeed = 0.1 * (1 - phase4);
+                }
+
+                ballAngle += ballSpeed;
+
+                // Add some wobble to the ball
+                const wobble = Math.sin(elapsed * 0.01) * (1 - progress) * 5;
+                const currentBallDistance = ballDistance + wobble;
+
+                drawWheel(wheelRotation, ballAngle, currentBallDistance);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Ensure ball ends up exactly in the right position
+                    drawWheel(wheelRotation, finalAngle, 180);
+                    finishSpin();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function finishSpin() {
+            const winningNumber = Math.floor(Math.random() * 37);
+            let won = false;
+            let multiplier = 1;
+
+            // Apply multipliers
+            if (items.golden_chip) multiplier = 2;
+            if (items.diamond_chip) multiplier = 3;
+            if (items.platinum_chip) multiplier = 4;
+            
+            // Apply luck bonuses
+            if (items.lucky_charm && Math.random() < 0.05) multiplier += 0.5;
+            if (items.fortune_cookie && Math.random() < 0.10) multiplier *= 2;
+            if (items.rabbit_foot && Math.random() < 0.03) {
+                won = true; // Avoid this loss
+                alert('🐰 Your Rabbit\'s Foot saved you from a loss!');
+            }
+
+            if (betType === 'red' && winningNumber !== 0 && winningNumber % 2 === 1) won = true;
+            if (betType === 'black' && winningNumber !== 0 && winningNumber % 2 === 0) won = true;
+            if (betType === 'green' && winningNumber === 0) won = true;
+
+            if (won) {
+                const winAmount = currentBet * 2 * multiplier;
+                balance += winAmount;
+                alert(`You won $${winAmount}!`);
+            } else {
+                alert('Better luck next time!');
+            }
+            
+            checkGameOver();
+
+            currentBet = 0;
+            betType = '';
+            isSpinning = false;
+            document.getElementById('spinButton').disabled = false;
+            updateBalance();
+            saveGameData();
+        }
+
+        function buyItem(item, cost) {
+            if (balance >= cost && !items[item]) {
+                balance -= cost;
+                items[item] = true;
+                updateBalance();
+            saveGameData();
+                alert(`Successfully purchased ${item.replace('_', ' ')}!`);
+                saveGameData();
+            } else if (items[item]) {
+                alert('You already own this item!');
+            } else {
+                alert('Not enough funds!');
+            }
+        }
+
+        // Initialize
+        drawWheel(0);
+        updateBalance();
+        updateUpgrades();
+
+        // Create number grid
+        const numberGrid = document.getElementById('numberGrid');
+        numbers.forEach(num => {
+            const btn = document.createElement('button');
+            btn.textContent = num;
+            btn.className = `number-btn ${num === 0 ? 'green' : num % 2 === 0 ? 'black' : 'red'}`;
+            btn.onclick = () => placeBet(num.toString());
+            numberGrid.appendChild(btn);
+        });
+    </script>
+</body>
+</html>

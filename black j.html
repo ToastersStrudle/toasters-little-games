@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #2c3e50;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #start-screen {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            position: absolute;
+            z-index: 10;
+        }
+
+        #start-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #f1c40f;
+        }
+
+        .menu-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        #shop-screen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+            max-height: 80vh;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .shop-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .shop-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .shop-item button {
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .shop-item.owned button {
+            background-color: #27ae60;
+            cursor: default;
+        }
+
+        .color-preview {
+            width: 100px;
+            height: 50px;
+            margin: 0.5rem auto;
+            border-radius: 5px;
+        }
+
+        #start-button {
+            font-size: 1.5rem;
+            padding: 1rem 2rem;
+            background-color: #27ae60;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #start-button:hover {
+            background-color: #219a52;
+        }
+
+        #game-container {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            padding: 2rem;
+        }
+
+        .player-area {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            min-height: 150px;
+        }
+
+        .card {
+            background-color: white;
+            color: black;
+            width: 100px;
+            height: 150px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .red {
+            color: red;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .hit-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .stand-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .new-game-btn {
+            background-color: #f1c40f;
+            color: black;
+        }
+
+        .status {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        #chips-display {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            font-size: 1.2rem;
+        }
+
+        #bet-screen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+        }
+
+        #bet-amount {
+            width: 150px;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        #win-screen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+        }
+
+        #win-screen h2 {
+            color: #f1c40f;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .win-amount {
+            font-size: 2rem;
+            color: #2ecc71;
+            margin: 1rem 0;
+        }
+
+        .lose-amount {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+        <h1>♠️ Blackjack ♥️</h1>
+        <div class="menu-buttons">
+            <button id="start-button">Start Game</button>
+            <button id="shop-button" class="new-game-btn">Shop</button>
+        </div>
+    </div>
+
+    <div id="shop-screen">
+        <h2>Customization Shop</h2>
+        <div class="shop-items">
+            <div class="shop-item" data-item="table-green">
+                <h3>Green Table</h3>
+                <div class="color-preview" style="background-color: #2c3e50;"></div>
+                <p>Classic casino feel</p>
+                <p>Price: 500 chips</p>
+                <button class="buy-btn">Buy</button>
+            </div>
+            <div class="shop-item" data-item="table-red">
+                <h3>Red Table</h3>
+                <div class="color-preview" style="background-color: #c0392b;"></div>
+                <p>Bold and fierce</p>
+                <p>Price: 1000 chips</p>
+                <button class="buy-btn">Buy</button>
+            </div>
+            <div class="shop-item" data-item="table-purple">
+                <h3>Purple Table</h3>
+                <div class="color-preview" style="background-color: #8e44ad;"></div>
+                <p>Royal luxury</p>
+                <p>Price: 1500 chips</p>
+                <button class="buy-btn">Buy</button>
+            </div>
+            <div class="shop-item" data-item="card-gold">
+                <h3>Gold Card Back</h3>
+                <div class="color-preview" style="background: linear-gradient(45deg, #f1c40f, #f39c12);"></div>
+                <p>Premium card design</p>
+                <p>Price: 2000 chips</p>
+                <button class="buy-btn">Buy</button>
+            </div>
+        </div>
+        <button id="close-shop" class="stand-btn" style="margin-top: 1rem;">Close Shop</button>
+    </div>
+
+    <div id="chips-display">
+        Chips: <span id="chips-amount">1000</span>
+    </div>
+
+    <div id="bet-screen">
+        <h2>Place Your Bet</h2>
+        <input type="number" id="bet-amount" min="1" step="1">
+        <button id="place-bet-button" class="hit-btn">Place Bet</button>
+    </div>
+
+    <div id="win-screen">
+        <h2>Round Over!</h2>
+        <div id="win-message"></div>
+        <div id="win-amount"></div>
+        <button id="continue-button" class="hit-btn">Continue</button>
+    </div>
+
+    <div id="game-container">
+        <div class="player-area dealer-area">
+            <h2>Dealer's Hand (<span id="dealer-score">0</span>)</h2>
+            <div class="cards" id="dealer-cards"></div>
+        </div>
+
+        <div class="player-area player-area">
+            <h2>Your Hand (<span id="player-score">0</span>)</h2>
+            <div class="cards" id="player-cards"></div>
+            <div class="controls">
+                <button class="hit-btn" id="hit-button">Hit</button>
+                <button class="stand-btn" id="stand-button">Stand</button>
+                <button class="new-game-btn" id="new-game-button">New Game</button>
+            </div>
+        </div>
+
+        <div class="status" id="game-status"></div>
+    </div>
+
+    <script>
+        class Card {
+            constructor(suit, value) {
+                this.suit = suit;
+                this.value = value;
+            }
+
+            getNumericValue() {
+                if (['J', 'Q', 'K'].includes(this.value)) return 10;
+                if (this.value === 'A') return 11;
+                return parseInt(this.value);
+            }
+
+            toString() {
+                return `${this.value}${this.suit}`;
+            }
+
+            isRed() {
+                return this.suit === '♥️' || this.suit === '♦️';
+            }
+        }
+
+        class Deck {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                const suits = ['♠️', '♥️', '♣️', '♦️'];
+                const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+                this.cards = [];
+
+                for (let suit of suits) {
+                    for (let value of values) {
+                        this.cards.push(new Card(suit, value));
+                    }
+                }
+
+                this.shuffle();
+            }
+
+            shuffle() {
+                for (let i = this.cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+                }
+            }
+
+            draw() {
+                return this.cards.pop();
+            }
+        }
+
+        class BlackjackGame {
+            constructor() {
+                this.deck = new Deck();
+                this.playerHand = [];
+                this.dealerHand = [];
+                this.gameStatus = 'playing';
+                this.loadGameData();
+                this.setupEventListeners();
+                this.setupShop();
+            }
+
+            loadGameData() {
+                const savedData = localStorage.getItem('blackjackData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.chips = data.chips || 1000;
+                    this.ownedItems = data.ownedItems || [];
+                    this.activeTableColor = data.activeTableColor || '#2c3e50';
+                    this.activeCardBack = data.activeCardBack || '🂠';
+                this.shopItems = {};  // Will be initialized in setupShop
+                } else {
+                    this.chips = 1000;
+                    this.ownedItems = ['table-green'];
+                    this.activeTableColor = '#2c3e50';
+                    this.activeCardBack = '🂠';
+                }
+                this.currentBet = 0;
+                this.updateGameStyle();
+            }
+
+            saveGameData() {
+                const data = {
+                    chips: this.chips,
+                    ownedItems: this.ownedItems,
+                    activeTableColor: this.activeTableColor,
+                    activeCardBack: this.activeCardBack
+                };
+                localStorage.setItem('blackjackData', JSON.stringify(data));
+            }
+
+            setupEventListeners() {
+                document.getElementById('start-button').addEventListener('click', () => this.startGame());
+                document.getElementById('hit-button').addEventListener('click', () => this.hit());
+                document.getElementById('stand-button').addEventListener('click', () => this.stand());
+                document.getElementById('new-game-button').addEventListener('click', () => this.newGame());
+                document.getElementById('place-bet-button').addEventListener('click', () => this.placeBet());
+                document.getElementById('continue-button').addEventListener('click', () => this.continuePlaying());
+                document.getElementById('shop-button').addEventListener('click', () => this.openShop());
+                document.getElementById('close-shop').addEventListener('click', () => this.closeShop());
+            }
+
+            setupShop() {
+                this.shopItems = {
+                    'table-green': { price: 500, color: '#2c3e50' },
+                    'table-red': { price: 1000, color: '#c0392b' },
+                    'table-purple': { price: 1500, color: '#8e44ad' },
+                    'card-gold': { price: 2000, cardBack: '🂡' }
+                };
+
+                this.updateShopDisplay();
+            }
+
+            updateShopDisplay() {
+                document.querySelectorAll('.shop-item').forEach(item => {
+                    const itemId = item.dataset.item;
+                    const buyBtn = item.querySelector('.buy-btn');
+                    
+                    // Remove existing event listeners
+                    buyBtn.replaceWith(buyBtn.cloneNode(true));
+                    const newBuyBtn = item.querySelector('.buy-btn');
+
+                    if (this.ownedItems.includes(itemId)) {
+                        newBuyBtn.textContent = 'Owned';
+                        item.classList.add('owned');
+                        newBuyBtn.addEventListener('click', () => this.useItem(itemId, this.shopItems[itemId]));
+                    } else {
+                        newBuyBtn.textContent = 'Buy';
+                        item.classList.remove('owned');
+                        newBuyBtn.addEventListener('click', () => this.buyItem(itemId, this.shopItems[itemId]));
+                    }
+                });
+            }
+
+            openShop() {
+                document.getElementById('shop-screen').style.display = 'block';
+            }
+
+            closeShop() {
+                document.getElementById('shop-screen').style.display = 'none';
+            }
+
+            buyItem(itemId, itemData) {
+                if (this.chips >= itemData.price && !this.ownedItems.includes(itemId)) {
+                    this.chips -= itemData.price;
+                    this.ownedItems.push(itemId);
+                    this.updateChipsDisplay();
+                    this.saveGameData();
+                    this.updateShopDisplay();
+                    
+                    // Automatically use the item
+                    this.useItem(itemId, itemData);
+                } else if (this.chips < itemData.price) {
+                    alert('Not enough chips!');
+                }
+            }
+
+            useItem(itemId, itemData) {
+                if (itemData.color) {
+                    this.activeTableColor = itemData.color;
+                } else if (itemData.cardBack) {
+                    this.activeCardBack = itemData.cardBack;
+                }
+                this.updateGameStyle();
+                this.saveGameData();
+            }
+
+            updateGameStyle() {
+                document.body.style.backgroundColor = this.activeTableColor;
+            }
+
+            startGame() {
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('chips-display').style.display = 'block';
+                this.showBetScreen();
+            }
+
+            showBetScreen() {
+                document.getElementById('bet-screen').style.display = 'block';
+                document.getElementById('game-container').style.display = 'none';
+                const betInput = document.getElementById('bet-amount');
+                betInput.max = this.chips;
+                betInput.value = Math.min(100, this.chips);
+            }
+
+            placeBet() {
+                const betAmount = parseInt(document.getElementById('bet-amount').value);
+                if (betAmount <= 0 || betAmount > this.chips) {
+                    alert('Invalid bet amount!');
+                    return;
+                }
+                this.currentBet = betAmount;
+                this.chips -= betAmount;
+                document.getElementById('bet-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'block';
+                this.updateChipsDisplay();
+                this.newGame();
+            }
+
+            newGame() {
+                this.deck = new Deck();
+                this.playerHand = [];
+                this.dealerHand = [];
+                this.gameStatus = 'playing';
+
+                // Initial deal
+                this.playerHand.push(this.deck.draw(), this.deck.draw());
+                this.dealerHand.push(this.deck.draw(), this.deck.draw());
+
+                this.updateUI();
+                document.getElementById('game-status').textContent = `Current Bet: ${this.currentBet} chips`;
+            }
+
+            calculateScore(hand) {
+                let score = 0;
+                let aces = 0;
+
+                for (let card of hand) {
+                    if (card.value === 'A') {
+                        aces++;
+                    } else {
+                        score += card.getNumericValue();
+                    }
+                }
+
+                for (let i = 0; i < aces; i++) {
+                    if (score + 11 <= 21) {
+                        score += 11;
+                    } else {
+                        score += 1;
+                    }
+                }
+
+                return score;
+            }
+
+            hit() {
+                if (this.gameStatus !== 'playing') return;
+
+                this.playerHand.push(this.deck.draw());
+                const score = this.calculateScore(this.playerHand);
+
+                if (score > 21) {
+                    this.gameStatus = 'dealer-win';
+                    this.endGame();
+                }
+
+                this.updateUI();
+            }
+
+            stand() {
+                if (this.gameStatus !== 'playing') return;
+
+                while (this.calculateScore(this.dealerHand) < 17) {
+                    this.dealerHand.push(this.deck.draw());
+                }
+
+                const playerScore = this.calculateScore(this.playerHand);
+                const dealerScore = this.calculateScore(this.dealerHand);
+
+                if (dealerScore > 21 || playerScore > dealerScore) {
+                    this.gameStatus = 'player-win';
+                } else if (dealerScore > playerScore) {
+                    this.gameStatus = 'dealer-win';
+                } else {
+                    this.gameStatus = 'push';
+                }
+
+                this.endGame();
+            }
+
+            endGame() {
+                const winScreen = document.getElementById('win-screen');
+                const winMessage = document.getElementById('win-message');
+                const winAmount = document.getElementById('win-amount');
+                let message = '';
+                let amount = '';
+
+                switch (this.gameStatus) {
+                    case 'player-win':
+                        message = 'You Win! 🎉';
+                        this.chips += this.currentBet * 2;
+                        amount = `<div class="win-amount">+${this.currentBet} chips</div>`;
+                        break;
+                    case 'dealer-win':
+                        message = 'Dealer Wins! 😢';
+                        amount = `<div class="lose-amount">-${this.currentBet} chips</div>`;
+                        break;
+                    case 'push':
+                        message = 'Push! 🤝';
+                        this.chips += this.currentBet;
+                        amount = '<div>Bet returned</div>';
+                        break;
+                }
+
+                winMessage.textContent = message;
+                winAmount.innerHTML = amount;
+                winScreen.style.display = 'block';
+                this.updateChipsDisplay();
+                this.updateUI();
+            }
+
+            updateChipsDisplay() {
+                document.getElementById('chips-amount').textContent = this.chips;
+            }
+
+            continuePlaying() {
+                document.getElementById('win-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'none';
+                if (this.chips <= 0) {
+                    alert('Game Over! You ran out of chips!');
+                    location.reload();
+                    return;
+                }
+                // Show the start screen again
+                document.getElementById('start-screen').style.display = 'block';
+            }
+
+            updateUI() {
+                const dealerCardsElement = document.getElementById('dealer-cards');
+                const playerCardsElement = document.getElementById('player-cards');
+                const dealerScoreElement = document.getElementById('dealer-score');
+                const playerScoreElement = document.getElementById('player-score');
+
+                dealerCardsElement.innerHTML = '';
+                playerCardsElement.innerHTML = '';
+
+                this.dealerHand.forEach((card, index) => {
+                    if (this.gameStatus === 'playing' && index === 1) {
+                                const hiddenCard = document.createElement('div');
+                        hiddenCard.className = 'card';
+                        hiddenCard.textContent = this.activeCardBack;
+                        dealerCardsElement.appendChild(hiddenCard);
+                    } else {
+                        dealerCardsElement.appendChild(this.createCardElement(card));
+                    }
+                });
+
+                this.playerHand.forEach(card => {
+                    playerCardsElement.appendChild(this.createCardElement(card));
+                });
+
+                if (this.gameStatus === 'playing') {
+                    dealerScoreElement.textContent = this.calculateScore([this.dealerHand[0]]);
+                } else {
+                    dealerScoreElement.textContent = this.calculateScore(this.dealerHand);
+                }
+
+                playerScoreElement.textContent = this.calculateScore(this.playerHand);
+            }
+
+            createCardElement(card) {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                
+                // If it's a Card object (not the back of a card)
+                if (typeof card === 'object' && card.hasOwnProperty('suit') && card.hasOwnProperty('value')) {
+                    cardElement.textContent = card.toString();
+                    if (card.isRed()) {
+                        cardElement.classList.add('red');
+                    }
+                }
+                return cardElement;
+            }
+        }
+
+        // Start the game
+        const game = new BlackjackGame();
+    </script>
+</body>
+</html>
