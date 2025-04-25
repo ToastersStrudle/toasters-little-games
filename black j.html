@@ -534,6 +534,17 @@
             }
 
             newGame() {
+                // If there's an active game with a bet, the player loses their bet
+                if (this.gameStatus === 'playing' && this.currentBet > 0) {
+                    this.gameStatus = 'dealer';
+                    document.getElementById('game-status').textContent = `You forfeited ${this.currentBet} chips`;
+                    this.currentBet = 0;
+                    this.updateChipsDisplay();
+                    this.saveGameData();
+                    this.showBetScreen();
+                    return;
+                }
+
                 this.deck = new Deck();
                 this.playerHand = [];
                 this.dealerHand = [];
