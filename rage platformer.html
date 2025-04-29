@@ -452,7 +452,7 @@
                     // Add traps in a circular pattern
                     for (let i = 0; i < 12; i++) {
                         const angle = (i * Math.PI) / 6;
-                        const radius = 300;
+                        const radius = 200;
                         const x = 700 + Math.cos(angle) * radius;
                         const y = baseHeight - 300 + Math.sin(angle) * radius;
                         gameState.traps.push(new Trap(x, y, 30, 30));
